@@ -1,0 +1,9 @@
+# Judy core dependencies (iteration 1)
+google-genai>=2.3.0     # Gemini client (also Antigravity smoke test in v2)
+pydantic>=2.6           # typed domain schemas
+python-dotenv>=1.0      # load GEMINI_API_KEY from .env
+fastapi>=0.110          # API server
+uvicorn[standard]>=0.29 # ASGI server
+sse-starlette>=2.0      # SSE progress stream for the loop
+tenacity>=8.2           # retry/backoff for model calls
+numpy>=1.26             # metrics (stdev, aggregation)
