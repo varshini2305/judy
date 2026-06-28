@@ -77,9 +77,14 @@ def append_bullets(content: str, header: str, bullets: list[str]) -> str:
         end += 1
 
     body = lines[h + 1 : end]
-    existing = {ln.lstrip("- ").strip().lower() for ln in body if ln.strip().startswith("-")}
+    seen = {ln.lstrip("- ").strip().lower() for ln in body if ln.strip().startswith("-")}
     kept = [ln for ln in body if not ln.strip().lower().startswith(_PLACEHOLDER_PREFIX)]
-    new_bullets = [f"- {b}" for b in bullets if b.lower() not in existing]
+    new_bullets = []
+    for b in bullets:  # dedup against existing lines AND within this batch
+        if b.lower() in seen:
+            continue
+        seen.add(b.lower())
+        new_bullets.append(f"- {b}")
 
     rebuilt = lines[: h + 1] + _trim_blanks(kept) + new_bullets + [""] + lines[end:]
     return "\n".join(rebuilt).rstrip() + "\n"

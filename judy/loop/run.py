@@ -59,11 +59,16 @@ async def run_mode(
     run_dir: Path,
     *,
     n_iters: int = CONFIG.n_iters,
+    client=None,
     progress: ProgressFn = lambda _msg: None,
 ) -> dict:
-    """Run baseline + N improvement iterations for one mode; log artifacts."""
+    """Run baseline + N improvement iterations for one mode; log artifacts.
+
+    ``client`` is injectable (any object with ``generate_json``) for offline
+    testing; defaults to a real Gemini client for the mode.
+    """
     anchored = mode == "anchored"
-    client = client_for_mode(mode)
+    client = client or client_for_mode(mode)
     items_by_id: dict[str, Item] = {i.id: i for i in dataset.dev}
     mode_dir = run_dir / mode
     mode_dir.mkdir(parents=True, exist_ok=True)
