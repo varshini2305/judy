@@ -11,7 +11,7 @@ _Last updated: 2026-06-28_
 
 - **Judge model:** `gemini-3.5-flash`, held **constant** — only the policy/method
   changes between variants, so deltas are attributable to the method, not the model.
-- **Benchmark:** **LLMBar-Adversarial** (via RewardBench) — adversarial QA judging
+- **Benchmark:** **LLMBar-Adversarial** (via RewardBench) — adversarial question-answering judging
   where a fluent-but-wrong answer is crafted to look better. **100-item test set**
   (`judy/data/datasets/llmbar_adversarial_100.jsonl`, 25 each from GPTInst / GPTOut
   / manual / neighbor). Labels are human-preferred answers.
@@ -46,8 +46,13 @@ _Last updated: 2026-06-28_
 | **V1** | structured-rubric | gemini-3.5-flash | — | nothing (static) | 100 | **85.5%** | 93.0% | ~$0.8 |
 | **V2** | continual-learning | gemini-3.5-flash | — (self) | 40 dev | 100 | **86.0%** | 98.0% | ~$0.81 |
 | **V5** | teacher-driven | gemini-3.5-flash | gpt-5.4-nano | 40 dev | 100 | **86.5%** (peak 88.5%) | 93.0% | ~$3.30 |
+| **V4** | judge-jury (per-user) | gemini-3.5-flash | gpt-5.4-nano (label oracle) | 18 (creative) | 12 (creative) | see **§V4** | 83.3% | ~$0.60–0.71 |
 
-All measured on the same 100 adversarial items, order-swap on.
+V0/V1/V2/V5 are all measured on the **same** 100 adversarial items, order-swap on.
+**V4 is deliberately on a different benchmark** and answers a different question —
+subjective preference *variance*, which LLMBar cannot measure (it carries one
+human label per item). V4 therefore has its own in-track baseline (B0) and its
+numbers are **not** comparable to the LLMBar agreement column above. See §V4.
 
 ### V0 — baseline-vanilla
 - **What it is:** the standard LLM-as-judge — a single call with a generic *"which answer
@@ -111,6 +116,62 @@ All measured on the same 100 adversarial items, order-swap on.
 - **Audit:** `runs/v5-<id>/skill_*.md` (lessons), `example_bank.json`, `critiques.jsonl`
   (the teacher's diagnoses), `curve.json` (learning curve).
 
+### V4 — judge-jury, per-user preference modelling  *(subjective track; mixed result)*
+
+> V4 tests a **different thesis** from V0–V5. Those improve agreement with a
+> *single* human label on an objective-ish benchmark. V4 asks: when the task is
+> **subjective** (creative writing) and users genuinely disagree, can a **jury of
+> per-user jurors** model each user's individual taste better than one judge can?
+> LLMBar can't grade this (one label/item), so V4 ships its own benchmark.
+
+- **The claim it tests:** the judge owns a shared evaluation structure and guides
+  the jurors; each juror is assigned **one user** and models that user's taste, so
+  the jury covers the *spread* of preferences a single judge must average over.
+- **Benchmark (new):** `judy/data/datasets/creative_pref_benchmark.jsonl` — **30**
+  creative pairwise items (sonnet/haiku/free-verse/flash-fiction), each piece pair
+  built to split opposing aesthetic readers. **5 user personas with hidden
+  preference policies** (`judy/data/personas.py`: Imagist / Formalist / Minimalist
+  / Romantic / Modernist) each label **all 30** items via `gpt-5.4-nano`
+  role-playing the hidden policy (the **label oracle**, never shown to jurors).
+  Split **18 train / 12 test** per user; **25/30 items have persona disagreement**.
+- **Setup:** judge model `gemini-3.5-flash` (constant). **B0** = one generic judge,
+  scored against every user (the in-track baseline). **V4** = one juror/user,
+  modelling that user from its **train** labels, scored on its **test** labels.
+  Order-swap ON. Two juror modes: `reflect` (distil lessons from disagreements,
+  reusing the V2 reflect→apply loop) and `fewshot` (condition directly on the
+  user's train choices). Run: `python -m judy.eval.jury [--mode fewshot]`.
+- **Metrics:** mean per-user test agreement (V4 vs B0) + a **personalization
+  matrix** `agree(juror_i, user_j)` — the diagonal should dominate if jurors truly
+  capture *their own* user.
+
+  | Variant | Mean agreement | vs B0 | Personalization (diag wins) | Pos-cons. | Cost |
+  |---------|----------------|-------|------------------------------|-----------|------|
+  | **B0** single judge | 63.3% | — | — | 83.3% | — |
+  | **V4 reflect** | 62.5% | **−0.8** | **1/5** | 85.0% | ~$0.71 |
+  | **V4 few-shot** | 65.0% | **+1.7** | **2/5** | 83.3% | ~$0.60 |
+
+- **Honest verdict — mixed/negative, and informative:**
+  1. A same-model jury **barely edges** a single judge (+1.7 at best, well inside
+     noise on a 12-item test). Prompt-only personas on one frozen model make
+     **correlated** decisions — the failure mode flagged before the build.
+  2. **Few-shot conditioning > reflection** for this. Reflection produced *muddy,
+     self-contradictory* per-user lessons (the Modernist juror learned both
+     "anti-sentimental restraint" *and* "earnest emotional resonance") because it
+     over-generalised from a tiny, noisy error set — so jurors converged.
+  3. **Personalization is real but partial.** Few-shot makes the **Formalist
+     (0.71) and Modernist (0.79)** jurors top-match their own user — the two most
+     *lexically distinctive* tastes (meter/archaic vs plain/contemporary). The
+     subtler tastes (Imagist/Minimalist/Romantic) collapse toward the model's
+     default aesthetic and don't separate.
+- **Caveats:** small test set (12 items × 2 orders → percentages swing per item);
+  the `gpt-5.4-nano` oracle is itself imperfect (it carries an A-/"richer-piece"
+  bias we partly corrected with position-randomised labelling), which caps the
+  achievable ceiling (B0 only 63%). The result is a **finding, not a failure**:
+  per-user modelling needs either genuine **model-family diversity** in the jury
+  or a **cleaner, less correlated oracle**, not just persona prompts.
+- **Audit:** `runs/jury-<id>/` — `metrics.json` (per-user + full matrix), one
+  `juror_<persona>.md` per juror (its learned/conditioned policy).
+
 ## How to add a variant (for parallel sessions)
 
 1. Implement the method: a new policy string, or a new loop under `judy/loop/` or `judy/eval/`.
@@ -145,6 +206,6 @@ Paper: **"Learn Like Humans: Use Meta-cognitive Reflection for Efficient Self-Im
 - **Verdict: worth trying as V3.** Low build cost (extends `reflect.py`), citeable
   SOTA, and it tests whether structured principle+procedure *synthesis* beats our
   current append-style reflection (V2).
-- **Few-shot error-memory:** retrieve similar past mistakes as in-context examples (vector retrieval → the MongoDB use case).
-- **Reliability-weighted role jury:** diverse judges (Gemini + GPT-nano), weighted by per-task historical reliability.
+- **Few-shot error-memory:** retrieve similar past mistakes as in-context examples (vector retrieval → the MongoDB use case). *(Partly realized in **V4 few-shot**, which conditions per-user jurors on their own past choices.)*
+- **Reliability-weighted role jury:** diverse judges (Gemini + GPT-nano), weighted by per-task historical reliability. *(The jury machinery now exists in `judy/eval/jury.py` (**V4**). V4 found same-model jurors correlate → the clear next step is **GPT-nano as a second juror family** for genuine diversity, then reliability-weight the vote.)*
 - **Weight-update track (Codex, `judy/tuning/`):** SFT / preference tuning on Gemini — a *separate*, model-level path (not context-only).

@@ -104,7 +104,7 @@ evidence · multi-agent · fine-tuning · RLHF/preference-opt · recursive self-
 
 ### 8. Benchmarking baseline LLM-judge vs. Judy
 Clear comparison on agreement, preference-capture, bias-resistance, consistency,
-calibration, performance on unseen QA.
+calibration, performance on unseen question-answering.
 - **Maps to:** ✅ Core of what we're building — baseline vs improved on held-out
   *unseen* types. Have: agreement, position-consistency, score-spread.
 - **Known technique:** Judge benchmarks (RewardBench, LLMBar, JudgeBench);

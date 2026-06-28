@@ -1,0 +1,68 @@
+{"kind":"deck","id":"pr/95a7iq","name":"Deck"}
+{"kind":"layout","layoutId":"167d3d56-259c-4940-8bc2-3e0ed7425a9d","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"dc50517e-d5ec-49dd-a8be-9e71c460ebf9","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/sxmj49","slide":1,"title":"4-slide demo deck","textShapes":6}
+{"kind":"shape","id":"sh/j6tovaho","slide":1,"bbox":[72,54,200,28]}
+{"kind":"textbox","id":"sh/crmhk3q5","slide":1,"text":"4-slide demo deck","textPreview":"4-slide demo deck","textChars":17,"textLines":1,"bbox":[84,59,176,18]}
+{"kind":"textbox","id":"sh/1cfa9w3m","slide":1,"text":"Judy\nA self-learning system of judges and juries","textPreview":"Judy | A self-learning system of judges and juries","textChars":48,"textLines":2,"bbox":[72,126,760,170]}
+{"kind":"textbox","id":"sh/uxc3ylc7","slide":1,"text":"Judy improves the evaluator itself: learn from failures, test on held-out tasks, and grow from one judge into structured deliberation.","textPreview":"Judy improves the evaluator itself: learn from failures, test on held-out tasks, and grow from one judge into structured deliberation.","textChars":134,"textLines":1,"bbox":[72,330,760,78]}
+{"kind":"shape","id":"sh/ji5snelo","slide":1,"bbox":[900,150,280,250]}
+{"kind":"textbox","id":"sh/c3ylc7u5","slide":1,"text":"Why this matters\n\nBetter AI systems need better evaluators.","textPreview":"Why this matters |  | Better AI systems need better evaluators.","textChars":59,"textLines":3,"bbox":[930,190,220,110]}
+{"kind":"textbox","id":"sh/1kre1w7m","slide":1,"text":"Judy","textPreview":"Judy","textChars":4,"textLines":1,"bbox":[72,686,180,16]}
+{"kind":"textbox","id":"sh/q5o7qpg3","slide":1,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[1168,686,40,16]}
+{"kind":"notes","id":"nt/sxmj49","slide":1,"text":""}
+{"kind":"slide","id":"sl/g5apdi","slide":2,"title":"The gap","textShapes":9}
+{"kind":"textbox","id":"sh/cfa9w3m9","slide":2,"text":"The gap","textPreview":"The gap","textChars":7,"textLines":1,"bbox":[72,48,680,50]}
+{"kind":"textbox","id":"sh/judg7ads","slide":2,"text":"Many LLM judges look strong on averages and fail on the cases that matter most.","textPreview":"Many LLM judges look strong on averages and fail on the cases that matter most.","textChars":79,"textLines":1,"bbox":[72,102,760,38]}
+{"kind":"shape","id":"sh/u9knih4b","slide":2,"bbox":[72,194,470,68]}
+{"kind":"textbox","id":"sh/1orytsvu","slide":2,"text":"Easy subsets saturate","textPreview":"Easy subsets saturate","textChars":21,"textLines":1,"bbox":[94,214,420,28]}
+{"kind":"shape","id":"sh/c7u54zid","slide":2,"bbox":[72,288,470,68]}
+{"kind":"textbox","id":"sh/jm1cfa9w","slide":2,"text":"Fluent wrong answers still win","textPreview":"Fluent wrong answers still win","textChars":30,"textLines":1,"bbox":[94,308,420,28]}
+{"kind":"shape","id":"sh/u18jqh0f","slide":2,"bbox":[72,382,470,68]}
+{"kind":"textbox","id":"sh/5gbq1ory","slide":2,"text":"Self-consistency can look like learning","textPreview":"Self-consistency can look like learning","textChars":39,"textLines":1,"bbox":[94,402,420,28]}
+{"kind":"shape","id":"sh/cvixczed","slide":2,"bbox":[620,194,588,328]}
+{"kind":"textbox","id":"sh/m1cfa9w3","slide":2,"text":"Current baseline signal","textPreview":"Current baseline signal","textChars":23,"textLines":1,"bbox":[648,220,240,26]}
+{"kind":"textbox","id":"sh/47y1kre1","slide":2,"text":"The vanilla judge reaches 88.6% on a small RewardBench sample, but falls to 50% on a hard adversarial subset.","textPreview":"The vanilla judge reaches 88.6% on a small RewardBench sample, but falls to 50% on a hard adversarial subset.","textChars":109,"textLines":1,"bbox":[648,448,500,58]}
+{"kind":"textbox","id":"sh/tsvu9kni","slide":2,"text":"Judy","textPreview":"Judy","textChars":4,"textLines":1,"bbox":[72,686,180,16]}
+{"kind":"textbox","id":"sh/mp0bi9s3","slide":2,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[1168,686,40,16]}
+{"kind":"chart","id":"ch/j2t83itg","slide":2,"name":"","chartType":"bar","bbox":[705,270,410,150]}
+{"kind":"notes","id":"nt/g5apdi","slide":2,"text":""}
+{"kind":"slide","id":"sl/1wbc1w","slide":3,"title":"What Judy does differently","textShapes":13}
+{"kind":"textbox","id":"sh/3ylc7u54","slide":3,"text":"What Judy does differently","textPreview":"What Judy does differently","textChars":26,"textLines":1,"bbox":[72,48,760,50]}
+{"kind":"textbox","id":"sh/sji5snel","slide":3,"text":"Judy turns evaluation into a learning loop and checks whether that learning is real.","textPreview":"Judy turns evaluation into a learning loop and checks whether that learning is real.","textChars":84,"textLines":1,"bbox":[72,102,860,38]}
+{"kind":"shape","id":"sh/h4byhgn2","slide":3,"bbox":[72,190,860,72]}
+{"kind":"shape","id":"sh/a5gbq1or","slide":3,"bbox":[90,210,120,28]}
+{"kind":"textbox","id":"sh/3m94fu18","slide":3,"text":"1. Evaluate","textPreview":"1. Evaluate","textChars":11,"textLines":1,"bbox":[102,215,96,18]}
+{"kind":"textbox","id":"sh/s72x4nap","slide":3,"text":"Judge against the actual prompt and constraints","textPreview":"Judge against the actual prompt and constraints","textChars":47,"textLines":1,"bbox":[234,212,640,28]}
+{"kind":"shape","id":"sh/lszqtcj6","slide":3,"bbox":[72,286,860,72]}
+{"kind":"shape","id":"sh/a1gvy90j","slide":3,"bbox":[90,306,120,28]}
+{"kind":"textbox","id":"sh/zidonyd0","slide":3,"text":"2. Reflect","textPreview":"2. Reflect","textChars":10,"textLines":1,"bbox":[102,311,96,18]}
+{"kind":"textbox","id":"sh/re1w7mp0","slide":3,"text":"Find the lesson behind the mistake","textPreview":"Find the lesson behind the mistake","textChars":34,"textLines":1,"bbox":[234,308,640,28]}
+{"kind":"shape","id":"sh/2t83itgf","slide":3,"bbox":[72,382,860,72]}
+{"kind":"shape","id":"sh/9knih4by","slide":3,"bbox":[90,402,120,28]}
+{"kind":"textbox","id":"sh/kzupwb2h","slide":3,"text":"3. Rewrite","textPreview":"3. Rewrite","textChars":10,"textLines":1,"bbox":[102,407,96,18]}
+{"kind":"textbox","id":"sh/rqd4vmtw","slide":3,"text":"Update the judging policy","textPreview":"Update the judging policy","textChars":25,"textLines":1,"bbox":[234,404,640,28]}
+{"kind":"shape","id":"sh/25kb6xkf","slide":3,"bbox":[72,478,860,72]}
+{"kind":"shape","id":"sh/9w3m94fu","slide":3,"bbox":[90,498,120,28]}
+{"kind":"textbox","id":"sh/kb6xkf6d","slide":3,"text":"4. Re-test","textPreview":"4. Re-test","textChars":10,"textLines":1,"bbox":[102,503,96,18]}
+{"kind":"textbox","id":"sh/r2p8nqxs","slide":3,"text":"Measure on held-out tasks and benchmarks","textPreview":"Measure on held-out tasks and benchmarks","textChars":40,"textLines":1,"bbox":[234,500,640,28]}
+{"kind":"shape","id":"sh/2hwfyxob","slide":3,"bbox":[960,210,220,220]}
+{"kind":"textbox","id":"sh/q1orytsv","slide":3,"text":"Technical core\n\nanchored vs.\nunanchored\nself-improvement","textPreview":"Technical core |  | anchored vs. | unanchored | self-improvement","textChars":56,"textLines":5,"bbox":[990,238,160,130]}
+{"kind":"textbox","id":"sh/fmlkjm1c","slide":3,"text":"Judy","textPreview":"Judy","textChars":4,"textLines":1,"bbox":[72,686,180,16]}
+{"kind":"textbox","id":"sh/87ed8bat","slide":3,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[1168,686,40,16]}
+{"kind":"notes","id":"nt/1wbc1w","slide":3,"text":""}
+{"kind":"slide","id":"sl/phjoz4","slide":4,"title":"What is novel, and what comes next","textShapes":10}
+{"kind":"textbox","id":"sh/pg3ex0nu","slide":4,"text":"What is novel, and what comes next","textPreview":"What is novel, and what comes next","textChars":34,"textLines":1,"bbox":[72,48,740,50]}
+{"kind":"textbox","id":"sh/epkzupwb","slide":4,"text":"The novelty is not one more prompt. It is evaluator improvement with held-out measurement and a path toward judge-and-jury systems.","textPreview":"The novelty is not one more prompt. It is evaluator improvement with held-out measurement and a path toward judge-and-jury systems.","textChars":131,"textLines":1,"bbox":[72,102,900,38]}
+{"kind":"shape","id":"sh/7adsji5s","slide":4,"bbox":[72,204,340,300]}
+{"kind":"textbox","id":"sh/w7mp0bi9","slide":4,"text":"Novel now","textPreview":"Novel now","textChars":9,"textLines":1,"bbox":[94,232,250,28]}
+{"kind":"textbox","id":"sh/psfil0rq","slide":4,"text":"A judge that learns from failures, rewrites its own policy, and compares anchored learning against unanchored self-critique.","textPreview":"A judge that learns from failures, rewrites its own policy, and compares anchored learning against unanchored self-critique.","textChars":124,"textLines":1,"bbox":[94,282,286,160]}
+{"kind":"shape","id":"sh/e1w7mp0b","slide":4,"bbox":[444,204,340,300]}
+{"kind":"textbox","id":"sh/7mp0bi9s","slide":4,"text":"Built today","textPreview":"Built today","textChars":11,"textLines":1,"bbox":[466,232,250,28]}
+{"kind":"textbox","id":"sh/wfyxobm5","slide":4,"text":"Headless judge loop, benchmarks, synthetic benchmark pipeline, live UI, and the first tuning/export scaffolding.","textPreview":"Headless judge loop, benchmarks, synthetic benchmark pipeline, live UI, and the first tuning/export scaffolding.","textChars":112,"textLines":1,"bbox":[466,282,286,160]}
+{"kind":"shape","id":"sh/l0rqd4vm","slide":4,"bbox":[816,204,340,300]}
+{"kind":"textbox","id":"sh/hk3q5o7q","slide":4,"text":"Demo next","textPreview":"Demo next","textChars":9,"textLines":1,"bbox":[838,232,250,28]}
+{"kind":"textbox","id":"sh/oza1gvy9","slide":4,"text":"Show the product story, the evaluator loop, and how this expands into tuning, bias probes, and structured deliberation.","textPreview":"Show the product story, the evaluator loop, and how this expands into tuning, bias probes, and structured deliberation.","textChars":119,"textLines":1,"bbox":[838,282,286,160]}
+{"kind":"textbox","id":"sh/zed8v6ps","slide":4,"text":"Judy","textPreview":"Judy","textChars":4,"textLines":1,"bbox":[72,686,180,16]}
+{"kind":"textbox","id":"sh/6xkf6dcb","slide":4,"text":"4","textPreview":"4","textChars":1,"textLines":1,"bbox":[1168,686,40,16]}
+{"kind":"notes","id":"nt/phjoz4","slide":4,"text":""}

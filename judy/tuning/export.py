@@ -35,7 +35,7 @@ _PREFERENCE_CONTEXT = {
 def build_sft_prompt(system_prompt: str, question: str, answer_a: str, answer_b: str) -> str:
     """Prompt template for pairwise supervised judge tuning."""
     return (
-        "You are a QA judge.\n\n"
+        "You are a question-answering judge.\n\n"
         f"SYSTEM PROMPT:\n{system_prompt}\n\n"
         f"QUESTION:\n{question}\n\n"
         f"ANSWER A:\n{answer_a}\n\n"
@@ -53,7 +53,7 @@ def build_preference_prompt(
 ) -> str:
     """Prompt template for preference-tuning answer selection."""
     return (
-        "You are selecting between two QA answers for a specific user's taste.\n"
+        "You are selecting between two question-answering answers for a specific user's taste.\n"
         f"USER PREFERENCE:\n{preference_context}\n\n"
         "Correctness and spec-compliance come first. If both answers are "
         "acceptable, choose the one that better matches the user's preference.\n\n"

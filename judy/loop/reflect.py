@@ -39,14 +39,14 @@ Return JSON only:
 
 # Anchored: real ground-truth signal (the judge picked the worse answer).
 _ANCHORED_PROMPT = (
-    "You are improving the policy of a pairwise QA judge by learning from its mistakes.\n\n"
+    "You are improving the policy of a pairwise question-answering judge by learning from its mistakes.\n\n"
     "Current policy:\n---\n{skill}\n---\n\n"
     "The judge got these comparisons WRONG (it picked the worse answer):\n{errors}\n\n" + _RULES
 )
 
 # Unanchored: NO ground truth — only the judge's own self-inconsistency.
 _UNANCHORED_PROMPT = (
-    "You are improving the policy of a pairwise QA judge using only its own self-consistency.\n\n"
+    "You are improving the policy of a pairwise question-answering judge using only its own self-consistency.\n\n"
     "Current policy:\n---\n{skill}\n---\n\n"
     "On these comparisons the judge gave DIFFERENT verdicts depending on answer order — "
     "a sign its reasoning is unstable (no ground truth is available):\n{errors}\n\n" + _RULES

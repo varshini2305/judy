@@ -125,7 +125,7 @@ deltas over the vanilla baseline.
 
 ## Evaluation framework (adopt idea 10's structure)
 
-- **Layer A — Objective QA:** our tiers + LLMBar/RewardBench. Primary.
+- **Layer A — Objective question-answering:** our tiers + LLMBar/RewardBench. Primary.
 - **Layer B — Bias/robustness:** the Method-2 probes as a scored suite.
 - **Layer C — Preference:** simulated users with hidden policies → **v2**.
 - **Metrics:** agreement, position-consistency, calibration (ECE, esp. pointwise),

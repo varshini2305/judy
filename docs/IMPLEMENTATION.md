@@ -8,7 +8,7 @@ _Last updated: 2026-06-28_
 
 ## System in one paragraph
 
-Judy is a pairwise QA judge whose **policy is a markdown file** (`skills/judge/SKILL.md`).
+Judy is a pairwise question-answering judge whose **policy is a markdown file** (`skills/judge/SKILL.md`).
 A loop evaluates the judge, reflects on its mistakes via an LLM, and **appends
 task-general lessons** to that policy — then re-measures on a held-out set of
 *unseen task types*. The headline experiment compares **anchored** learning
@@ -33,6 +33,9 @@ demonstrating that self-improvement needs an external anchor.
 | `judy/loop/reflect.py` | Error → edits | One LLM call; anchored vs unanchored prompt; enforces task-GENERAL lessons |
 | `judy/loop/run.py` | The loop + logging | baseline + N iters per mode, early stopping, writes `runs/{id}/` |
 | `judy/tuning/export.py` | Tuning dataset transforms | Exports Judy/benchmark/synthetic objective rows into SFT-ready JSONL plus preference rows |
+| `judy/data/personas.py` | V4 user personas | 5 simulated users with **hidden** taste policies (label oracle; never shown to jurors) |
+| `judy/eval/jury.py` | V4 judge-jury (subjective) | B0 single judge vs per-user jurors (`reflect`/`fewshot` modes); reuses harness+metrics+reflect; emits per-user agreement + personalization matrix |
+| `scripts/generate_creative_pref_benchmark.py` | V4 benchmark gen | gpt-5.4-nano creative pairs + per-persona labels (position-randomised) → `creative_pref_benchmark.jsonl` |
 
 **UI built (mock-driven):** `ui/` — Vite+React+TS+Tailwind+Recharts+diff-viewer,
 4 screens (Control Room, Skill Evolution, Item Inspector, Try Judy w/ pairwise+

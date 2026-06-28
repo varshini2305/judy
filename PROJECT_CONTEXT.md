@@ -167,6 +167,22 @@ Work alternates between **Claude Code, Codex, and Antigravity** across sessions.
 
 > One entry per work block: agent · what changed · next step · unverified.
 
+- **2026-06-28 — Claude** · Built **V4 (judge-jury, per-user preference
+  modelling)** as a new *subjective* track. New: `judy/data/personas.py` (5 users
+  w/ hidden taste policies), `prompts/creative_pref/*`,
+  `scripts/generate_creative_pref_benchmark.py` (gpt-5.4-nano oracle, position-
+  randomised labelling), `judy/data/datasets/creative_pref_benchmark.jsonl` (30
+  items, 18/12 split, 25/30 items have persona disagreement), `judy/eval/jury.py`
+  (B0 baseline + per-user jurors in `reflect`/`fewshot` modes + personalization
+  matrix), `tests/test_creative_jury.py` (offline, passing). **Real results:** B0
+  single judge 63.3% mean agreement; V4-reflect 62.5% (−0.8, 1/5 personalization);
+  V4-fewshot 65.0% (+1.7, 2/5). Same-model jurors correlate → personalization only
+  works for lexically-distinctive tastes (Formalist 0.71, Modernist 0.79 diagonal).
+  Documented honestly in `docs/VARIANTS.md` §V4 (mixed/negative finding). Cost
+  ~$1.3 total Gemini + cheap nano gen. · **Next:** add **GPT-nano as a second
+  juror family** (genuine diversity) + reliability-weighted aggregation; enlarge
+  the test split to cut variance. · **Unverified:** robustness of the nano oracle
+  labels; whether a model-diverse jury beats B0 by more than noise.
 - **2026-06-28 — Codex** · Added the first concrete weight-update track:
   `docs/MODEL_TUNING_PLAN.md`, offline export helpers in `judy/tuning/`,
   exporter scripts for SFT and simulated-user preference tuning, tests for those

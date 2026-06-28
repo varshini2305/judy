@@ -1,6 +1,6 @@
 ---
 name: judge
-description: Evaluation policy for Judy, a pairwise QA judge. Defines how to score answer quality against a task's system prompt.
+description: Evaluation policy for Judy, a pairwise question-answering judge. Defines how to score answer quality against a task's system prompt.
 ---
 
 # Judge Policy

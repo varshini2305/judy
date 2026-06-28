@@ -34,7 +34,7 @@ preference is irrelevant — never propose a lesson that would trade correctness
 for style.
 
 ## Hard constraint — generalize
-Every lesson or hypothesis must be **task-general**: about how to judge ANY QA
+Every lesson or hypothesis must be **task-general**: about how to judge ANY question-answering
 spec, never specific to this example's topic. Reject anything of the form "for
 questions about X, prefer Y." Topic-specific rules do not transfer and cause
 overfitting. Phrase improvements in terms of *evaluation behavior*, not subject

@@ -17,7 +17,7 @@ Add a lightweight but real **model-update baseline** to Judy so we can compare:
 
 The first milestone is not "best possible judge." It is:
 
-> Can small, practical weight updates improve LLM-as-a-judge performance for QA
+> Can small, practical weight updates improve LLM-as-a-judge performance for question-answering
 > with modest data and modest cloud cost?
 
 ## Chosen Gemini setup
@@ -80,7 +80,7 @@ gs://judy-tuning-us/
 
 ### Track A — SFT judge on Gemini 3.5 Flash
 
-Train a pairwise QA judge on explicit winner labels.
+Train a pairwise question-answering judge on explicit winner labels.
 
 **Input:**
 
@@ -96,7 +96,7 @@ Train a pairwise QA judge on explicit winner labels.
 
 **Primary use:**
 
-- objective QA judge improvement
+- objective question-answering judge improvement
 - closest comparison to the current Judy task
 
 ### Track B — Preference tuning on Gemini 2.5 Flash
@@ -112,7 +112,7 @@ There are two reasonable uses:
    other.
 
 For Judy, start with **answer preference judge** because it aligns with the
-existing pairwise QA framing and requires less new plumbing.
+existing pairwise question-answering framing and requires less new plumbing.
 
 ## Dataset strategy
 
@@ -138,7 +138,7 @@ Start from:
 - the existing preference/simulated-user track for cheap offline prototyping
 - later, real user choices if collected
 
-For the first cloud run, preference tuning can still be grounded in objective QA
+For the first cloud run, preference tuning can still be grounded in objective question-answering
 preference pairs if needed; the important thing is to validate the pipeline and
 measure whether the tuned judge improves.
 
@@ -167,7 +167,7 @@ Judy intermediate row:
 Prompt template:
 
 ```text
-You are a QA judge.
+You are a question-answering judge.
 
 SYSTEM PROMPT:
 {system_prompt}

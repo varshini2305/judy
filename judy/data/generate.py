@@ -1,4 +1,4 @@
-"""Synthetic QA dataset generator (brief §2).
+"""Synthetic question-answering dataset generator (brief §2).
 
 For each *instance* we ask Gemini for a task spec (system prompt with format +
 persona + an explicit constraint/prohibition), a question, a gold answer, and
@@ -44,7 +44,7 @@ _PAIRINGS: list[tuple[Tier, Tier]] = [
 ]
 _WEIGHTS = [0.45, 0.15, 0.15, 0.10, 0.05, 0.10]
 
-_SYNTH_PROMPT = """You are creating evaluation data for a pairwise QA judge. \
+_SYNTH_PROMPT = """You are creating evaluation data for a pairwise question-answering judge. \
 Task type: {name} — {brief}.
 
 Produce ONE realistic instance as JSON with these fields:

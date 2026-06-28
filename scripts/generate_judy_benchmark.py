@@ -45,17 +45,24 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Generate Judy synthetic benchmark.")
     parser.add_argument("--n", type=int, default=100)
     parser.add_argument("--objective-frac", type=float, default=0.7)
+    parser.add_argument("--objective-n", type=int)
+    parser.add_argument("--preference-n", type=int)
     parser.add_argument("--batch-size", type=int, default=5)
     parser.add_argument("--seed", type=int, default=13)
     parser.add_argument("--model", default="gpt-5.4-nano")
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT)
+    parser.add_argument("--output-prefix", default="judy_benchmark")
     args = parser.parse_args()
 
     rng = random.Random(args.seed)
     client = OpenAIResponsesClient(model=args.model)
 
-    objective_n = int(args.n * args.objective_frac)
-    preference_n = args.n - objective_n
+    if args.objective_n is not None or args.preference_n is not None:
+        objective_n = args.objective_n or 0
+        preference_n = args.preference_n or 0
+    else:
+        objective_n = int(args.n * args.objective_frac)
+        preference_n = args.n - objective_n
 
     full_rows: list[dict] = []
     full_rows.extend(
@@ -79,13 +86,13 @@ def main() -> None:
         )
     )
 
-    full_rows = _assign_ids_and_shuffle(full_rows, rng)
+    full_rows = _assign_ids_and_shuffle(full_rows, rng, id_namespace=args.output_prefix)
     review_rows = [make_review_row(row) for row in full_rows]
 
     out_dir = args.out_dir
-    full_path = out_dir / "judy_benchmark_full.jsonl"
-    review_path = out_dir / "judy_benchmark_review.jsonl"
-    meta_path = out_dir / "judy_benchmark_metadata.json"
+    full_path = out_dir / f"{args.output_prefix}_full.jsonl"
+    review_path = out_dir / f"{args.output_prefix}_review.jsonl"
+    meta_path = out_dir / f"{args.output_prefix}_metadata.json"
 
     write_jsonl(full_path, full_rows)
     write_jsonl(review_path, review_rows)
@@ -94,9 +101,10 @@ def main() -> None:
             {
                 "generator_model": args.model,
                 "n_cases": len(full_rows),
-                "objective_cases": sum(1 for r in full_rows if r["mode"] == "objective_pairwise"),
-                "preference_cases": sum(1 for r in full_rows if r["mode"] == "preference_pairwise"),
+                "objective_cases": objective_n,
+                "preference_cases": preference_n,
                 "seed": args.seed,
+                "output_prefix": args.output_prefix,
                 "prompt_files": {
                     "objective": str(PROMPTS_DIR / "objective_case.md"),
                     "preference": str(PROMPTS_DIR / "preference_case.md"),
@@ -219,12 +227,18 @@ def _normalize_case(case: dict, *, mode: str, prompt_version: str) -> dict | Non
     return base
 
 
-def _assign_ids_and_shuffle(rows: list[dict], rng: random.Random) -> list[dict]:
+def _assign_ids_and_shuffle(
+    rows: list[dict],
+    rng: random.Random,
+    *,
+    id_namespace: str,
+) -> list[dict]:
     items = list(rows)
     rng.shuffle(items)
+    namespace = id_namespace.replace(" ", "_").replace("-", "_")
     for idx, row in enumerate(items):
         prefix = "obj" if row["mode"] == "objective_pairwise" else "pref"
-        row["id"] = f"{prefix}-{idx:03d}"
+        row["id"] = f"{namespace}-{prefix}-{idx:03d}"
     return items
 
 

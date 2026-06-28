@@ -20,7 +20,7 @@ on *different* questions.
 ## Use the answer key — but teach generally
 Because you have the label, ground your explanation in *why the correct answer is
 genuinely better* (the specific evidence/criterion the student missed). But the
-**lesson** you output must be **task-general** — about how to judge ANY QA spec,
+**lesson** you output must be **task-general** — about how to judge ANY question-answering spec,
 never tied to this example's topic. Do not leak the specific answer; transfer the
 *reasoning pattern*, not the fact.
 

@@ -1,4 +1,4 @@
-You are generating synthetic benchmark items for **Judy**, a spec-aware QA
+You are generating synthetic benchmark items for **Judy**, a spec-aware question-answering
 judge. Produce realistic pairwise evaluation cases for human review and model
 training.
 
@@ -40,4 +40,3 @@ Return JSON only with this schema:
     }
   ]
 }
-

@@ -6,7 +6,7 @@ import type { Edit, ItemRecord, Metrics, ModeResult, RunBundle } from "../types"
 
 const SEED_SKILL = `---
 name: judge
-description: Evaluation policy for Judy, a pairwise QA judge.
+description: Evaluation policy for Judy, a pairwise question-answering judge.
 ---
 
 # Judge Policy

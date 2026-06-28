@@ -7,7 +7,7 @@
 _Last updated: 2026-06-27_
 
 ## What we must SHOW (the demo, per user's spec)
-1. Pick a QA case from a dataset; show the user **multiple responses** to a question.
+1. Pick a question-answering case from a dataset; show the user **multiple responses** to a question.
 2. The user **picks** the one they prefer (optionally says why).
 3. In the background, **Judy infers the user's preference** and updates a profile.
 4. Repeat a few rounds → Judy **generalizes** the preference.
@@ -51,7 +51,7 @@ _Last updated: 2026-06-27_
 ## Build order (drives to the demo)
 1. **Baseline harness** — vanilla judge vs preference-conditioned, scored on
    simulated users' choices. *This is the improvement metric.* (small credits)
-2. **Preference dataset** — a handful of QA questions, each with style-varied but
+2. **Preference dataset** — a handful of question-answering questions, each with style-varied but
    correctness-equal responses (concise / detailed / repetitive). Generate once
    with Gemini, or a hand fixture for $0 demo.
 3. **Preference-conditioned LLM judge** — wire `render_context()` into the judge call.
