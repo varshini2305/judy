@@ -1,0 +1,38 @@
+[
+  {
+    "sampleSize": 20,
+    "label": "SFT-20",
+    "status": "completed",
+    "baseAgreement": 92.5,
+    "tunedAgreement": 92.0,
+    "agreementDeltaPp": -0.5,
+    "basePositionConsistency": 99.0,
+    "tunedPositionConsistency": 96.0,
+    "positionConsistencyDeltaPp": -3.0,
+    "notes": "First completed SFT checkpoint. Slight regression overall, with the biggest robustness drop among the completed runs."
+  },
+  {
+    "sampleSize": 40,
+    "label": "SFT-40",
+    "status": "completed",
+    "baseAgreement": 92.5,
+    "tunedAgreement": 91.0,
+    "agreementDeltaPp": -1.5,
+    "basePositionConsistency": 99.0,
+    "tunedPositionConsistency": 98.0,
+    "positionConsistencyDeltaPp": -1.0,
+    "notes": "Clearer agreement regression than SFT-20, though answer-order robustness partially recovered."
+  },
+  {
+    "sampleSize": 60,
+    "label": "SFT-60",
+    "status": "completed",
+    "baseAgreement": 92.5,
+    "tunedAgreement": 91.5,
+    "agreementDeltaPp": -1.0,
+    "basePositionConsistency": 99.0,
+    "tunedPositionConsistency": 99.0,
+    "positionConsistencyDeltaPp": 0.0,
+    "notes": "Partial agreement recovery relative to SFT-40, but still below the untuned base judge."
+  }
+]

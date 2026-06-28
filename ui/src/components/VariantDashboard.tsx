@@ -70,8 +70,8 @@ export default function VariantDashboard({ experiments }: { experiments: Experim
       title: "Judge-jury preference track",
       model: `${experiments.judge_model} + juror personas`,
       benchmark: "Separate subjective benchmarks: creative writing and tweet preference",
-      method: "A central judge models shared quality signals while juror agents try to model individual user taste and disagreement.",
-      result: "Mixed result: creative few-shot jurors reached 65.0% vs 63.3% B0; tweet jurors reached +0.46 mean Spearman, but personalization was limited.",
+      method: "A central judge models shared quality signals while juror agents try to learn where user taste differs. This is most useful when evaluation is subjective and two users can reasonably prefer different answers.",
+      result: "Headline gains were small, but the direction is still promising: the jurors picked up some real user-specific signal. That matters because preference learning and literature on human-feedback modeling both suggest that personalized evaluators can help when subjectivity and user bias make one global judge inconsistent.",
     },
     {
       id: "V5",

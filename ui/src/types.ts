@@ -125,3 +125,16 @@ export interface SftEvalRun {
   status: "completed" | "pending";
   eval?: SftEvalData;
 }
+
+export interface SftTrendPoint {
+  sampleSize: number;
+  label: string;
+  status: "completed" | "pending";
+  baseAgreement: number;
+  tunedAgreement: number | null;
+  agreementDeltaPp: number | null;
+  basePositionConsistency: number;
+  tunedPositionConsistency: number | null;
+  positionConsistencyDeltaPp: number | null;
+  notes?: string;
+}

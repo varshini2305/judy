@@ -13,7 +13,7 @@ import PreferenceLoop from "./components/PreferenceLoop";
 import VariantDashboard from "./components/VariantDashboard";
 import TuningTrack from "./components/TuningTrack";
 import { Badge } from "./components/ui";
-import type { ExperimentData, SftEvalData, SftEvalRun } from "./types";
+import type { ExperimentData, SftEvalData, SftEvalRun, SftTrendPoint } from "./types";
 
 const TABS = [
   { id: "home", label: "Overview", icon: Home },
@@ -29,6 +29,7 @@ export default function App() {
   const [tab, setTab] = useState<TabId>("home");
   const [experiments, setExperiments] = useState<ExperimentData | null>(null);
   const [sftRuns, setSftRuns] = useState<SftEvalRun[] | null>(null);
+  const [sftTrend, setSftTrend] = useState<SftTrendPoint[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -36,20 +37,22 @@ export default function App() {
 
     async function load() {
       try {
-        const [experimentsResponse, sft20Response, sft40Response] = await Promise.all([
+        const [experimentsResponse, sft20Response, sft40Response, sftTrendResponse] = await Promise.all([
           fetch("/experiments.json"),
           fetch("/sft/judy_sft_v20_eval.json"),
           fetch("/sft/judy_sft_v40_eval.json"),
+          fetch("/sft/judy_sft_trend.json"),
         ]);
 
-        if (!experimentsResponse.ok || !sft20Response.ok || !sft40Response.ok) {
+        if (!experimentsResponse.ok || !sft20Response.ok || !sft40Response.ok || !sftTrendResponse.ok) {
           throw new Error("Failed to load UI experiment artifacts.");
         }
 
-        const [experimentsJson, sft20Json, sft40Json] = await Promise.all([
+        const [experimentsJson, sft20Json, sft40Json, sftTrendJson] = await Promise.all([
           experimentsResponse.json() as Promise<ExperimentData>,
           sft20Response.json() as Promise<SftEvalData>,
           sft40Response.json() as Promise<SftEvalData>,
+          sftTrendResponse.json() as Promise<SftTrendPoint[]>,
         ]);
 
         if (!cancelled) {
@@ -59,6 +62,7 @@ export default function App() {
             { sampleSize: 40, label: "SFT-40", status: "completed", eval: sft40Json },
             { sampleSize: 60, label: "SFT-60", status: "pending" },
           ]);
+          setSftTrend(sftTrendJson);
         }
       } catch (loadError) {
         if (!cancelled) {
@@ -74,7 +78,7 @@ export default function App() {
     };
   }, []);
 
-  const ready = experiments && sftRuns;
+  const ready = experiments && sftRuns && sftTrend;
 
   return (
     <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-6">
@@ -132,7 +136,7 @@ export default function App() {
             )}
             {tab === "variants" && <VariantDashboard experiments={experiments} />}
             {tab === "curve" && <LearningCurve />}
-            {tab === "tuning" && <TuningTrack sftRuns={sftRuns} />}
+            {tab === "tuning" && <TuningTrack sftRuns={sftRuns} sftTrend={sftTrend} />}
             {tab === "preference" && <PreferenceLoop />}
           </>
         )}

@@ -10,17 +10,22 @@ import {
   YAxis,
 } from "recharts";
 import { AlertTriangle, Cpu, FlaskConical, TrendingDown } from "lucide-react";
-import type { SftEvalData, SftEvalRun } from "../types";
+import type { SftEvalData, SftEvalRun, SftTrendPoint } from "../types";
 import { Badge, MetricCard, SectionTitle, pct } from "./ui";
 
 function formatDelta(value: number) {
   return `${value > 0 ? "+" : ""}${value.toFixed(1)}pp`;
 }
 
-export default function TuningTrack({ sftRuns }: { sftRuns: SftEvalRun[] }) {
+export default function TuningTrack({
+  sftRuns,
+  sftTrend,
+}: {
+  sftRuns: SftEvalRun[];
+  sftTrend: SftTrendPoint[];
+}) {
   const completed = sftRuns.filter((run) => run.status === "completed" && run.eval);
   const primary = completed.find((run) => run.sampleSize === 20)?.eval ?? completed[0]?.eval;
-  const pending = sftRuns.filter((run) => run.status === "pending");
 
   if (!primary) {
     return (
@@ -42,6 +47,9 @@ export default function TuningTrack({ sftRuns }: { sftRuns: SftEvalRun[] }) {
   const mostRecentEval = mostRecent.eval as SftEvalData;
   const mostRecentTuned =
     mostRecentEval.variants.find((variant) => variant.label === "tuned") ?? mostRecentEval.variants[1];
+  const latestTrendPoint = [...sftTrend]
+    .filter((point) => point.tunedAgreement !== null)
+    .sort((a, b) => b.sampleSize - a.sampleSize)[0];
 
   const subsetData = Object.entries(base.per_subset).map(([subset, metrics]) => ({
     subset,
@@ -49,32 +57,21 @@ export default function TuningTrack({ sftRuns }: { sftRuns: SftEvalRun[] }) {
     tuned: +((tuned20.per_subset[subset]?.agreement ?? 0) * 100).toFixed(1),
   }));
 
-  const trendData = sftRuns.map((run) => {
-    if (!run.eval) {
-      return {
-        sampleSize: run.sampleSize,
-        agreement: null,
-        baseAgreement: +(base.overall.agreement * 100).toFixed(1),
-        consistency: null,
-        baseConsistency: +(base.overall.position_consistency * 100).toFixed(1),
-        status: run.status,
-        label: run.label,
-      };
-    }
-    const tuned = run.eval.variants.find((variant) => variant.label === "tuned") ?? run.eval.variants[1];
-    const runBase = run.eval.variants.find((variant) => variant.label === "base") ?? run.eval.variants[0];
-    return {
-      sampleSize: run.sampleSize,
-      agreement: +(tuned.overall.agreement * 100).toFixed(1),
-      baseAgreement: +(runBase.overall.agreement * 100).toFixed(1),
-      consistency: +(tuned.overall.position_consistency * 100).toFixed(1),
-      baseConsistency: +(runBase.overall.position_consistency * 100).toFixed(1),
-      status: run.status,
-      label: run.label,
-    };
-  });
+  const trendData = sftTrend.map((point) => ({
+    sampleSize: point.sampleSize,
+    agreement: point.tunedAgreement,
+    baseAgreement: point.baseAgreement,
+    consistency: point.tunedPositionConsistency,
+    baseConsistency: point.basePositionConsistency,
+    status: point.status,
+    label: point.label,
+    agreementDeltaPp: point.agreementDeltaPp,
+    positionConsistencyDeltaPp: point.positionConsistencyDeltaPp,
+  }));
 
-  const hasPositiveTrend = completed.every((run) => (run.eval?.delta.agreement_pp ?? 0) > 0);
+  const hasPositiveTrend = sftTrend
+    .filter((point) => point.agreementDeltaPp !== null)
+    .every((point) => (point.agreementDeltaPp ?? 0) > 0);
 
   return (
     <div className="flex flex-col gap-6">
@@ -96,9 +93,9 @@ export default function TuningTrack({ sftRuns }: { sftRuns: SftEvalRun[] }) {
           hint="first tuned checkpoint"
         />
         <MetricCard
-          label={mostRecent.label}
-          value={pct(mostRecentTuned.overall.agreement, 1)}
-          delta={mostRecentTuned.overall.agreement - base.overall.agreement}
+          label={latestTrendPoint?.label ?? mostRecent.label}
+          value={latestTrendPoint ? `${latestTrendPoint.tunedAgreement?.toFixed(1)}%` : pct(mostRecentTuned.overall.agreement, 1)}
+          delta={latestTrendPoint ? (latestTrendPoint.tunedAgreement! - latestTrendPoint.baseAgreement) / 100 : (mostRecentTuned.overall.agreement - base.overall.agreement)}
           hint="latest completed tuned checkpoint"
         />
         <MetricCard
@@ -132,7 +129,7 @@ export default function TuningTrack({ sftRuns }: { sftRuns: SftEvalRun[] }) {
           <div className="mb-4 flex flex-wrap gap-2">
             <Badge tone="neutral">same base judge: Gemini 3.5 Flash</Badge>
             <Badge tone="neutral">same held-out test set: 100 objective cases</Badge>
-            <Badge tone="neutral">60-sample eval pending</Badge>
+            <Badge tone="neutral">20 / 40 / 60 checkpoints plotted</Badge>
           </div>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -186,7 +183,7 @@ export default function TuningTrack({ sftRuns }: { sftRuns: SftEvalRun[] }) {
             </ResponsiveContainer>
           </div>
           <p className="mt-3 text-sm leading-6 text-fog-300">
-            This is the easiest read of the tuning story: if SFT is helping, the blue line should climb as sample size grows. Right now, the completed points move downward from <span className="font-medium text-fog-100">92.0%</span> at SFT-20 to <span className="font-medium text-fog-100">91.0%</span> at SFT-40, so we do not yet see a simple upward trend to extrapolate from.
+            This is the easiest read of the tuning story: if SFT is helping, the blue line should climb as sample size grows. Right now, it drops from <span className="font-medium text-fog-100">92.0%</span> at SFT-20 to <span className="font-medium text-fog-100">91.0%</span> at SFT-40, then partially recovers to <span className="font-medium text-fog-100">91.5%</span> at SFT-60. That is a visible trend, but not a clean upward one, because all completed checkpoints remain below the untuned base.
           </p>
         </div>
 
@@ -196,35 +193,26 @@ export default function TuningTrack({ sftRuns }: { sftRuns: SftEvalRun[] }) {
             <h3 className="text-base font-semibold text-fog-100">Completed checkpoints</h3>
           </div>
           <div className="space-y-3">
-            {completed.map((run) => {
-              const tuned = run.eval?.variants.find((variant) => variant.label === "tuned") ?? run.eval?.variants[1];
+            {sftTrend.map((point) => {
+              const run = completed.find((item) => item.sampleSize === point.sampleSize);
+              const tuned = run?.eval?.variants.find((variant) => variant.label === "tuned") ?? run?.eval?.variants[1];
               return (
-                <div key={run.sampleSize} className="rounded-2xl border border-ink-600/70 bg-ink-900/35 p-4">
+                <div key={point.sampleSize} className="rounded-2xl border border-ink-600/70 bg-ink-900/35 p-4">
                   <div className="mb-2 flex items-center justify-between">
-                    <div className="text-sm font-semibold text-fog-100">{run.label}</div>
-                    <Badge tone={(run.eval?.delta.agreement_pp ?? 0) >= 0 ? "good" : "bad"}>
-                      {formatDelta(run.eval?.delta.agreement_pp ?? 0)}
+                    <div className="text-sm font-semibold text-fog-100">{point.label}</div>
+                    <Badge tone={point.agreementDeltaPp !== null && point.agreementDeltaPp >= 0 ? "good" : "bad"}>
+                      {point.agreementDeltaPp !== null ? formatDelta(point.agreementDeltaPp) : "pending"}
                     </Badge>
                   </div>
                   <p className="text-sm leading-6 text-fog-300">
-                    Tuned agreement: <span className="font-medium text-fog-100">{tuned ? pct(tuned.overall.agreement, 1) : "n/a"}</span>
+                    Tuned agreement: <span className="font-medium text-fog-100">{point.tunedAgreement !== null ? `${point.tunedAgreement.toFixed(1)}%` : (tuned ? pct(tuned.overall.agreement, 1) : "n/a")}</span>
                     {" · "}
-                    position-consistency: <span className="font-medium text-fog-100">{tuned ? pct(tuned.overall.position_consistency, 1) : "n/a"}</span>
+                    position-consistency: <span className="font-medium text-fog-100">{point.tunedPositionConsistency !== null ? `${point.tunedPositionConsistency.toFixed(1)}%` : (tuned ? pct(tuned.overall.position_consistency, 1) : "n/a")}</span>
                   </p>
+                  {point.notes && <p className="mt-2 text-xs leading-5 text-fog-500">{point.notes}</p>}
                 </div>
               );
             })}
-            {pending.map((run) => (
-              <div key={run.sampleSize} className="rounded-2xl border border-ink-600/70 bg-ink-900/35 p-4">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="text-sm font-semibold text-fog-100">{run.label}</div>
-                  <Badge tone="accent">pending</Badge>
-                </div>
-                <p className="text-sm leading-6 text-fog-300">
-                  The tuned job succeeded, but the held-out evaluation artifact has not landed in the UI yet.
-                </p>
-              </div>
-            ))}
           </div>
         </div>
       </div>
