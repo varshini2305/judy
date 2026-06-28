@@ -40,17 +40,25 @@ VARIANTS = [
 async def run_variants(path: Path = DEFAULT_SAMPLE) -> dict:
     items = load_benchmark_items(path)
     client = GeminiClient()
+    out_dir = CONFIG.runs_dir
+    out_dir.mkdir(parents=True, exist_ok=True)
     results = []
     for v in VARIANTS:
         records = await eval_split(client, v["policy"], items, order_swap=True)
         overall = compute_metrics(records)
+        # Per-item evidence: every judgment (item, subset, verdict, correct, order).
+        rec_path = out_dir / f"records_{v['label']}.jsonl"
+        with rec_path.open("w", encoding="utf-8") as fh:
+            for r in records:
+                fh.write(r.model_dump_json() + "\n")
         results.append({
             "label": v["label"],
             "description": v["description"],
             "overall": overall.model_dump(),
             "per_subset": {s: m.agreement for s, m in _by_subset(records).items()},
+            "records_file": str(rec_path),
         })
-    return {"n_items": len(items), "variants": results}
+    return {"n_items": len(items), "dataset": str(path), "variants": results}
 
 
 def _print(result: dict) -> None:
@@ -73,8 +81,12 @@ def _print(result: dict) -> None:
     print(f"{'OVERALL':24s}{overall_cells}")
 
 
+ADVERSARIAL_SAMPLE = CONFIG.runs_dir.parent / "judy/data/datasets/llmbar_adversarial_100.jsonl"
+
+
 def main() -> None:
-    result = asyncio.run(run_variants())
+    sample = ADVERSARIAL_SAMPLE if ADVERSARIAL_SAMPLE.exists() else DEFAULT_SAMPLE
+    result = asyncio.run(run_variants(sample))
     out = CONFIG.runs_dir / "variants_compare.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(result, indent=2), encoding="utf-8")
