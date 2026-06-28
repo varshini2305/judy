@@ -7,3 +7,4 @@ uvicorn[standard]>=0.29 # ASGI server
 sse-starlette>=2.0      # SSE progress stream for the loop
 tenacity>=8.2           # retry/backoff for model calls
 numpy>=1.26             # metrics (stdev, aggregation)
+openai>=1.40        # teacher model (gpt-5.4-nano) for the V5 cross-family loop

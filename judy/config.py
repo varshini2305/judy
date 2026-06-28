@@ -59,6 +59,12 @@ class Config:
     price_input_per_m: float = field(default_factory=lambda: _env_float("JUDY_PRICE_INPUT_PER_M", 1.50))
     price_output_per_m: float = field(default_factory=lambda: _env_float("JUDY_PRICE_OUTPUT_PER_M", 9.00))
 
+    # Teacher model (cross-family critic): OpenAI gpt-5.4-nano. Pricing TBD — verify.
+    openai_api_key: str | None = field(default_factory=lambda: os.getenv("OPENAI_API_KEY"))
+    teacher_model: str = field(default_factory=lambda: _env_str("JUDY_TEACHER_MODEL", "gpt-5.4-nano"))
+    teacher_price_input_per_m: float = field(default_factory=lambda: _env_float("JUDY_TEACHER_PRICE_INPUT_PER_M", 0.05))
+    teacher_price_output_per_m: float = field(default_factory=lambda: _env_float("JUDY_TEACHER_PRICE_OUTPUT_PER_M", 0.40))
+
     # --- Self-improvement loop --------------------------------------------
     n_iters: int = field(default_factory=lambda: _env_int("JUDY_N_ITERS", 4))
     # "anchored" = errors scored against known_ordering (real signal);
