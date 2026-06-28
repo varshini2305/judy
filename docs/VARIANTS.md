@@ -172,6 +172,29 @@ numbers are **not** comparable to the LLMBar agreement column above. See §V4.
 - **Audit:** `runs/jury-<id>/` — `metrics.json` (per-user + full matrix), one
   `juror_<persona>.md` per juror (its learned/conditioned policy).
 
+#### V4b — tweet likability, two-layer judge-jury on **real data**
+
+A second V4 benchmark that adds the **objective layer** the creative run lacked: the
+central judge *learns* quality signals from real data instead of a hand-written rubric.
+- **Data:** Kaggle `tweets-dataset` — like count → **within-author** popularity
+  percentile (controls for fame ≈ content likability). 72 tweets (47 train / 25 test),
+  4 authors. 5 simulated users = single, interpretable feature preferences (concise /
+  hashtags / conversational / expressive / links). Build:
+  `scripts/build_tweet_benchmark.py`.
+- **Setup:** central judge does a **metacognition/self-critique** pass over training
+  tweets + their popularity → guidelines; per-user **jurors** learn a user's taste from
+  ~10 few-shot labels (± the judge's guidelines, as an ablation). Metric: **Spearman**.
+  Run: `python -m judy.eval.tweet_jury`.
+- **Results:** central judge vs real popularity **+0.34** (objective layer works);
+  jurors vs their own user **+0.46 mean** (linkster +0.72) from a handful of labels;
+  **judge guidance HURT jurors** (+0.46 → +0.38 — popularity signal conflicts with
+  idiosyncratic taste); jury-mean vs popularity **−0.03**; personalization **1/5**.
+  Cost ~$0.06 (12 calls).
+- **Read:** both layers show *independent* signal, but same-model jurors correlate
+  (weak per-user specificity) and the objective/subjective layers can conflict. See
+  `docs/FINDINGS.md` (V4 subjective-track section) for the full discussion.
+- **Audit:** `runs/tweetjury-<id>/metrics.json`.
+
 ## How to add a variant (for parallel sessions)
 
 1. Implement the method: a new policy string, or a new loop under `judy/loop/` or `judy/eval/`.

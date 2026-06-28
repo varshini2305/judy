@@ -167,6 +167,34 @@ Work alternates between **Claude Code, Codex, and Antigravity** across sessions.
 
 > One entry per work block: agent · what changed · next step · unverified.
 
+- **2026-06-28 — Claude** · Extended **V4** into a **two-layer judge-jury** (central
+  judge learns objective quality signals → guides jurors; jurors model individual
+  users). Added a reusable literary-data contract (`docs/V4_LITERARY_DATA.md`,
+  `scripts/build_literary_benchmark.py`, `tests/test_literary_builder.py`) and a
+  **minimal tweet experiment on real Kaggle data**: `scripts/build_tweet_benchmark.py`
+  (like-count → within-author popularity; 5 single-feature personas),
+  `judy/data/datasets/tweet_pref_benchmark.jsonl` (72 tweets, 47/25), and
+  `judy/eval/tweet_jury.py` (judge metacognition + per-user jurors, Spearman).
+  **Real results (tweets):** central judge vs real popularity **+0.34**; jurors vs
+  own user **+0.46 mean** (linkster +0.72); judge guidance *hurt* jurors
+  (0.46→0.38); jury-mean vs popularity −0.03; personalization 1/5. Both layers show
+  independent signal but same-model jurors correlate and the layers can conflict.
+  Documented in `docs/FINDINGS.md` (new V4 subjective-track section) + `VARIANTS.md`.
+  Cost ~$0.06 (tweets). · **Next:** GPT-nano as a 2nd juror family for real
+  diversity; per-juror gating of objective guidance; swap in real per-user ratings
+  via the literary contract when available. · **Unverified:** whether model-diverse
+  jurors raise per-user specificity; tweet personas are simulated (single-feature),
+  not real human raters.
+- **2026-06-28 — Codex** · Ran a pre-public-repo audit across the tracked tree
+  and git history for obvious secrets/sensitive files. Result: no committed API
+  keys, private-key files, credential-bearing `.env` variants, or auth-bearing
+  connection strings found; history only shows `.env.example`. Minor residual
+  public-surface notes: `test.ipynb` includes live API-call example code plus a
+  GCP quota-project id string, and `PROJECT_CONTEXT.md` includes the GitHub
+  origin/user handle. · Next: if the repo is going public immediately, consider
+  clearing notebook outputs or dropping `test.ipynb` if it is not meant to be a
+  public artifact. · Unverified: no full external secret scanner (for example
+  gitleaks/trufflehog) was run against every historical blob.
 - **2026-06-28 — Claude** · Built **V4 (judge-jury, per-user preference
   modelling)** as a new *subjective* track. New: `judy/data/personas.py` (5 users
   w/ hidden taste policies), `prompts/creative_pref/*`,

@@ -38,8 +38,9 @@ only real headroom is **adversarial** instruction-following.
 | **V2** continual (self-critique) | self-reflection, batch 3 | 40 dev | 86.0% | **98.0%** | ~$0.81 |
 | **V5** teacher-driven (cross-family) | GPT teacher → Gemini, batch 3 | 40 dev | **86.5% final · 88.5% peak** | 93.0% | ~$3.30 |
 
-(V4 judge-jury is on a *different*, subjective creative-preference benchmark and is
-**not comparable** to this agreement column — see `VARIANTS.md` §V4.)
+(V4 judge-jury is on *different*, **subjective** benchmarks — creative-writing and
+tweet-likability — and is **not comparable** to this agreement column. It answers a
+different question; see the dedicated section below and `VARIANTS.md` §V4.)
 
 ## What shows promise (and why)
 
@@ -86,6 +87,46 @@ only real headroom is **adversarial** instruction-following.
    2024 judges) scored **97%** for our model. *Why: the model is strong at
    objective correctness; it's only fooled by **adversarial style**, so that's the
    only regime where any method can demonstrate a lift.*
+
+## V4 — the subjective track: can a jury model *individual* preference?
+
+A different question from V0–V5. Those raise agreement with **one** human label on
+objective-ish tasks. V4 asks: when judgment is **subjective** and users genuinely
+disagree, can a **central judge learn shared/objective quality signals** and a
+**jury of per-user jurors model each user's individual taste**? Tested on two
+benchmarks (LLMBar can't measure this — it carries one label per item).
+
+**(a) Creative writing** — 30 pairwise items, 5 personas with hidden taste policies
+(`gpt-5.4-nano` label oracle), 18 train / 12 test per user. Metric: per-user agreement.
+
+| System | Mean agreement | vs B0 | Personalization (diag wins) |
+|---|---|---|---|
+| B0 single judge | 63.3% | — | — |
+| V4 reflect | 62.5% | −0.8 | 1/5 |
+| V4 few-shot | 65.0% | +1.7 | 2/5 |
+
+**(b) Tweet likability** — real Kaggle tweets, like-count → within-author popularity
+(controls for fame), 5 single-feature personas, 47 train / 25 test. Metric: Spearman.
+
+- **Central judge vs real popularity: +0.34** — via self-critique over examples it
+  learned which content features predict relative likes. *The objective layer works.*
+- **Jurors vs their own user (taste-only): +0.46 mean** (linkster +0.72) — from ~10
+  labels a juror predicts that user's likes. *Per-user learning shows real signal.*
+- **Judge guidance HURT jurors: +0.46 → +0.38** — popularity-oriented guidance pulls
+  a juror toward the consensus and away from idiosyncratic taste (linkster 0.72→0.29).
+- **Jury mean vs popularity: −0.03; diagonal 1/5** — jurors converge across users and
+  their average does not reconstruct the crowd.
+
+**What V4 shows.** Both layers *independently* show signal: a central judge can learn
+objective quality from real data (+0.34), and a juror can learn one person's taste
+from a handful of labels (+0.46). **What fails** is the same thing both V4 benchmarks
+surface: (1) same-base-model jurors **correlate** — they capture shared "good work"
+signal more than user-specific taste (1–2/5 personalization), and (2) the two layers
+can **conflict** — forcing the objective rubric onto a juror *degrades* its
+personalization. *Why:* prompt-only personas on one frozen model aren't diverse
+enough, and a single shared rubric can't serve a user whose taste opposes the
+consensus. **Next levers:** a genuinely different juror model family (GPT-nano) for
+real diversity, and per-juror *gating* of how much objective signal to apply.
 
 ## The core insight
 
