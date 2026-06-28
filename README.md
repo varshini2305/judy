@@ -1,14 +1,29 @@
 # Judy
 
-A **self-improving LLM-as-a-judge** for pairwise QA. Given a task's system
-prompt, a question, and two candidate answers, Judy decides which answer better
-satisfies the spec — and **rewrites her own evaluation policy**
-(`skills/judge/SKILL.md`) by reflecting on her mistakes. Improvement is measured
-on a held-out set of *unseen task types* she never learns from.
+**Judy** is a self-improving **LLM-as-a-judge** for pairwise QA. Given a task's
+system prompt, a question, and two candidate answers, Judy decides which answer
+better satisfies the spec, then **rewrites her own evaluation policy**
+(`skills/judge/SKILL.md`) by reflecting on her mistakes. Improvement is
+measured on a held-out set of *unseen task types* she never learns from.
 
-"Self-learning" here = **context engineering** (rewriting the rubric), not
+The name plays on the idea of a **judge and jury working together**. The judge
+defines the rules, evaluation criteria, and structure. The jurors act as
+independent decision-makers who examine the evidence from different angles, such
+as correctness, helpfulness, preference, and bias. That court-style setup is
+the larger vision for Judy: structured deliberation that reduces the influence
+of any single evaluator's blind spots.
+
+"Self-learning" here means **context engineering** and policy improvement, not
 weight training. See `Judy_Iteration1_Brief.md` for the full iteration-1 spec
-and `docs/ROADMAP.md` for what's deferred.
+and `docs/ROADMAP.md` for deferred work.
+
+## Model Stack
+
+- **Current primary model:** Google Gemini `gemini-3.5-flash` for judging,
+  reflection, and dataset-related synthesis in iteration 1.
+- **Secondary / exploratory model path:** OpenAI models are available for later
+  comparison, jury-style disagreement analysis, and follow-on experiments where
+  a second evaluator adds useful diversity.
 
 ## Setup
 
@@ -31,9 +46,13 @@ metrics). Config and toggles live in `judy/config.py`.
 ## API + UI
 
 ```bash
-uvicorn judy.api.server:app --reload   # FastAPI: /run (SSE), /runs/{id}, /judge, /dataset
 cd ui && npm install && npm run dev     # Vite + React dashboard
 ```
+
+The UI is in active development. The current direction is a clearer landing
+page and dashboard that explain the vision, the current baseline, what worked,
+what did not, and where the framework is pushing frontier LLM-as-a-judge and
+recursive self-improvement ideas.
 
 ## Layout
 
@@ -42,5 +61,17 @@ cd ui && npm install && npm run dev     # Vite + React dashboard
 - `runs/` — logged run artifacts (gitignored)
 - `ui/` — React dashboard
 - `scripts/smoke_antigravity.py` — standalone Antigravity de-risk (v2 prep)
+
+## What's Next
+
+- Improve README and UI readability/accessibility so the project is easier to
+  understand quickly.
+- Build a high-quality slide deck focused on the problem, the framework, the
+  technical strengths, the limitations, and what makes the approach hard to
+  replicate cleanly.
+- Ship a landing page that clearly explains the vision, execution, roadmap,
+  experiments tried, and lessons learned.
+- Measure real performance against baselines so claims about improvement are
+  supported by actual evaluation numbers.
 
 _Status: iteration 1, in active development._

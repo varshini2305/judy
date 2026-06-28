@@ -154,6 +154,20 @@ Work alternates between **Claude Code, Codex, and Antigravity** across sessions.
 
 > One entry per work block: agent · what changed · next step · unverified.
 
+- **2026-06-27 — Codex** · Updated `README.md` with a stronger project intro,
+  a short judge/jury concept explanation, a concise model-stack section
+  covering Gemini + OpenAI, and a public-facing "What's Next" roadmap covering
+  readability/accessibility, slide deck, landing page, and real baseline
+  measurement. · Next: turn the README roadmap into concrete artifacts starting
+  with either landing-page copy structure or a slide-deck outline. ·
+  Unverified: final performance numbers, which OpenAI model path will be used
+  first, and the exact public narrative once more experiments land.
+- **2026-06-27 — Codex** · Reconciled docs against the repo, scanned backend/UI
+  once, added `CODEX_CONTEXT.md` for Codex-specific orientation/review notes,
+  and noted that plain `pytest` currently fails import discovery (`judy` not on
+  path). · Next: review Claude changes as they land, or pick up pointwise
+  backend/API work if asked. · Unverified: live Gemini path, API wiring,
+  pointwise backend, default test invocation fix.
 - **2026-06-27 — Claude** · Set up context system + folded iteration-1 brief
   into this doc (decisions D1–D5). · Next: scaffold. · Unverified: git/model id.
 - **2026-06-27 — Claude** · Built headless core + self-improvement loop + offline
@@ -180,3 +194,11 @@ Work alternates between **Claude Code, Codex, and Antigravity** across sessions.
   spec. Resolves prior open questions — self-rewriting SKILL.md judge on
   pairwise QA, anchored-vs-unanchored ablation as the core, Gemini 3.5 Flash,
   jury/Antigravity/fine-tuning deferred to ROADMAP.
+- **2026-06-27** — README positioning pass started: project naming now frames
+  Judy as a judge/jury-style evaluation framework, with public-facing roadmap
+  items for model disclosure, accessibility/readability, a clear landing page,
+  a high-quality slide deck, and performance-vs-baseline validation.
+- **2026-06-27** — Added an explicit multi-agent process rule: keep context
+  files continuously updated so Claude/Codex/other agents can see progress,
+  next steps, and in-flight work without duplicating or clobbering each other,
+  including any future weight-update-based exploration.

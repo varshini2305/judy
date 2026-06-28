@@ -50,6 +50,11 @@
 
 - Keep `PROJECT_CONTEXT.md` refreshed roughly every 20 min of active work and
   before any stopping point.
+- Keep context files updated during active implementation so other agents,
+  especially Claude Code, can understand current progress, planned next steps,
+  and any in-flight work without repeating or overwriting it. This applies to
+  exploratory tracks too, including weight-update-based methods if they enter
+  scope.
 - Keep `docs/IMPLEMENTATION.md` current: what's implemented, a high-level of how,
   and concise reasoning for design/stack choices. Update it when modules land or
   change.
