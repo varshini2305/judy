@@ -3,7 +3,7 @@
 > Codex-owned working context. This is a fast orientation and review aid, not a
 > replacement for `PROJECT_CONTEXT.md` or `CLAUDE.md`.
 
-_Last updated: 2026-06-27_
+_Last updated: 2026-06-28_
 
 ## What Judy is
 
@@ -12,7 +12,7 @@ an anchored-vs-unanchored self-improvement loop on held-out task types the
 judge never learns from. "Learning" means rewriting `skills/judge/SKILL.md`,
 not training weights.
 
-## Repo reality after one scan
+## Repo reality after recent scans
 
 - Backend core exists in `judy/`: config, schemas, dataset loader/guard, judge,
   reflection, metrics, and the loop runner are present.
@@ -23,8 +23,8 @@ not training weights.
 - Pointwise judging is described in docs and surfaced in the UI copy, but the
   backend still looks pairwise-first. Treat pointwise backend work as likely
   next.
-- The working tree is not clean: `CLAUDE.md` is modified, and
-  `docs/DESIGN_DECISIONS.md` plus `docs/INDEX.md` are currently untracked.
+- Benchmarking now includes RewardBench baseline tooling and a JudgeBench
+  sample fetch helper for harder external comparisons.
 
 ## Verified behavior
 
@@ -38,13 +38,11 @@ not training weights.
 
 ## Current drift / caveats
 
-- `PROJECT_CONTEXT.md` still says the API and pointwise backend are not built.
-  That seems directionally true for the API, but the document lags the fact that
-  the UI is now present.
-- Plain `pytest -q` from repo root currently fails at collection with
-  `ModuleNotFoundError: No module named 'judy'`. That is packaging/test-path
-  wiring, not necessarily a logic failure, but it means "tests pass" is not true
-  for a default local invocation right now.
+- `PROJECT_CONTEXT.md` historically lagged the actual UI state. Refresh it when
+  UI/API/backend milestones shift so Claude does not plan from stale notes.
+- Some public-facing docs still imply more live API surface than the repo
+  currently ships. Keep README claims conservative until `judy/api/server.py`
+  actually lands.
 - The brief asked for `frontend-design`; this repo instead has a shipped UI plus
   docs noting design choices. That is historical context only unless the user
   wants more UI work.

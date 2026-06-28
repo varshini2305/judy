@@ -5,7 +5,7 @@
 > top; handoff log + session log at bottom. **Authoritative iteration-1 spec is
 > `Judy_Iteration1_Brief.md` — read it before coding.**
 
-_Last updated: 2026-06-27_
+_Last updated: 2026-06-28_
 
 ## What this is
 
@@ -125,18 +125,23 @@ Tailwind+shadcn+Recharts) + `scripts/smoke_antigravity.py` + `docs/ROADMAP.md`.
 
 ## Current state
 
-- **Headless backend COMPLETE + offline-tested** (6 tests pass, zero API
-  credits): config, schema, Gemini client, judge, skill manager, metrics, eval
-  harness, dataset loader+guard, data generator, reflect, loop+logging.
-- Loop is injectable (stub client) for free testing. Gemini path validated with
-  one live call.
-- **Not yet built:** `api/server.py` (FastAPI+SSE), `ui/` (React dashboard),
-  `scripts/smoke_antigravity.py`. **Not yet done:** a real end-to-end run on
-  generated data (costs credits — pending decision).
-- Env: `.venv` via **uv**; deps + pytest installed. **9 local commits, none
-  pushed.**
-- Context system + `docs/IMPLEMENTATION.md` + statusline + allowlist in place.
-- Sprint clock: 14 hours to demo (started 2026-06-27).
+- **Headless backend COMPLETE + offline-tested**: config, schema, Gemini
+  client, judge, skill manager, metrics, eval harness, dataset loader+guard,
+  data generator, reflect, loop+logging.
+- **UI exists and is mock-driven** in `ui/` with the shell and four screens
+  already implemented; the main missing integration is wiring it to a live API.
+- Benchmarking work now includes a RewardBench baseline, judge-variant
+  comparison tooling, and an additional JudgeBench sample fetch helper for a
+  harder external baseline track.
+- Loop is injectable (stub client) for free testing. Gemini path has been
+  validated with a live call.
+- **Still missing / unverified:** `judy/api/server.py` (FastAPI+SSE), pointwise
+  backend wiring, `scripts/smoke_antigravity.py`, and a real end-to-end run on
+  generated data.
+- Env: `.venv` via **uv**; deps + pytest installed, and root-level `pytest`
+  invocation has been fixed.
+- Context system + `docs/IMPLEMENTATION.md` + statusline + allowlist are in
+  place.
 
 ## Multi-agent workflow
 
@@ -154,6 +159,15 @@ Work alternates between **Claude Code, Codex, and Antigravity** across sessions.
 
 > One entry per work block: agent · what changed · next step · unverified.
 
+- **2026-06-28 — Codex** · Refreshed the shared context docs for current repo
+  reality, tightened the README project framing, added a Codex-specific context
+  file for faster cold starts, and prepared coherent commits so completed work
+  can be pushed before the log gets noisy. Also included a JudgeBench sample
+  fetch helper as a standalone benchmark utility. · Next: keep landing-page /
+  deck / evaluation work landing in small pushable slices, and connect any new
+  benchmark or weight-update experiments back into the shared context trail. ·
+  Unverified: live API wiring, pointwise backend completion, JudgeBench results,
+  and whether weight-update methods will enter near-term scope.
 - **2026-06-27 — Codex** · Updated `README.md` with a stronger project intro,
   a short judge/jury concept explanation, a concise model-stack section
   covering Gemini + OpenAI, and a public-facing "What's Next" roadmap covering
