@@ -65,6 +65,9 @@ class Config:
     # "unanchored" = judge re-ranks its own verdicts (no ground truth).
     mode: str = field(default_factory=lambda: _env_str("JUDY_MODE", "anchored"))
 
+    # Continual learning: reflect + update the policy after every N streamed examples.
+    continual_batch_size: int = field(default_factory=lambda: _env_int("JUDY_CONTINUAL_BATCH", 3))
+
     # --- Position-bias control (order swap) -------------------------------
     # OFF for intermediate dev passes (halves calls); ON for baseline + every
     # held-out eval, where position-consistency must be measured.
