@@ -1,4 +1,9 @@
 :8080 {
+	@api path /api/*
+	handle @api {
+		reverse_proxy {$BACKEND_ORIGIN}
+	}
+
 	root * /srv
 	file_server
 	try_files {path} /index.html

@@ -39,10 +39,49 @@ directory.
 Setup:
 
 1. Push the UI changes to GitHub.
-2. In Railway, create a new service from the GitHub repo.
-3. Set the service **Root Directory** to `ui`.
+2. In Railway, create a new **frontend** service from the GitHub repo.
+3. Set the frontend service **Root Directory** to `ui`.
 4. Let Railway build from the `ui/Dockerfile`.
-5. After deploy, generate a public domain under Railway networking.
+5. Generate a public domain for the frontend service.
+
+### Add the FastAPI backend service for `/api`
+
+The `Preference Loop` needs the FastAPI backend. The static frontend alone will
+not make `/api/preference/*` work on Railway.
+
+This repo now includes:
+
+- `judy/api/Dockerfile`
+
+Backend setup:
+
+1. In the same Railway project, create a second **backend** service from the
+   same GitHub repo.
+2. Set the backend service **Root Directory** to the repo root.
+3. Set the backend service **Dockerfile Path** to `judy/api/Dockerfile`.
+4. Add any required runtime secrets there, such as:
+   - `GEMINI_API_KEY`
+   - `OPENAI_API_KEY` (only if you want features that depend on it)
+5. Generate a public or internal Railway domain for the backend service.
+
+### Connect the frontend service to the backend service
+
+The frontend Caddy config now proxies `/api/*` to a backend origin using the
+`BACKEND_ORIGIN` environment variable.
+
+On the **frontend** Railway service, set:
+
+- `BACKEND_ORIGIN=https://<your-backend-service-domain>`
+
+Example:
+
+- `BACKEND_ORIGIN=https://judy-api-production.up.railway.app`
+
+After redeploy, the frontend will:
+
+- serve the SPA normally
+- proxy `/api/*` to the FastAPI backend
+- allow the `Preference Loop` page to work on Railway, not just locally
 
 Why this is the default:
 
@@ -115,9 +154,9 @@ infrastructure than Firebase Hosting.
 
 ## Current limitation
 
-The deployed UI is still **mock-driven**. Hosting it now is useful for product
-storytelling, design review, and demo polish, but it will not yet reflect live
-run data until the FastAPI layer is shipped.
+Most of the main dashboard is still artifact-backed rather than fully live. The
+important exception is the `Preference Loop`, which now depends on the FastAPI
+backend being deployed and connected via the frontend proxy.
 
 ## Verified locally
 

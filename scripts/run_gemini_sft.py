@@ -28,6 +28,13 @@ def main() -> None:
     parser.add_argument("--project-id", required=True)
     parser.add_argument("--region", default="us-central1")
     parser.add_argument("--base-model", default="gemini-3.5-flash")
+    parser.add_argument(
+        "--custom-base-model",
+        help=(
+            "Optional tuned-model resource to continue from instead of starting from the "
+            "foundation model again. Example: projects/.../locations/us/models/...@1"
+        ),
+    )
     parser.add_argument("--tuned-model-name", default="judy-judge-sft-v1")
     args = parser.parse_args()
 
@@ -50,6 +57,7 @@ def main() -> None:
     request_stub = {
         "display_name": args.tuned_model_name,
         "base_model": args.base_model,
+        "custom_base_model": args.custom_base_model,
         "project_id": args.project_id,
         "region": args.region,
         "training_data": {
@@ -64,6 +72,13 @@ def main() -> None:
             "after tuning completes, pass the tuned model resource into scripts/eval_tuned_judge.py",
         ],
     }
+    if args.custom_base_model:
+        request_stub["notes"].append(
+            "continuation tuning requested: use custom_base_model instead of restarting from the base foundation model"
+        )
+        request_stub["notes"].append(
+            "as of 2026-06-28, local gcloud help mentions custom base models but the installed gcloud CLI rejected --custom-base-model; direct API submission may be required"
+        )
 
     (out_dir / "request_stub.json").write_text(json.dumps(request_stub, indent=2), encoding="utf-8")
 
@@ -75,6 +90,10 @@ def main() -> None:
         f"gcloud storage cp {vertex_test} {gcs_prefix}/vertex_test.jsonl",
         f"gcloud storage cp {dataset_dir / 'metadata.json'} {gcs_prefix}/metadata.json",
     ]
+    if args.custom_base_model:
+        upload_lines.append(
+            "# submission note: current local gcloud CLI rejected --custom-base-model; use request_stub.json with a direct Vertex API submission if continuation tuning is supported for this model family"
+        )
     (out_dir / "upload_commands.sh").write_text(
         "#!/usr/bin/env bash\nset -euo pipefail\n" + "\n".join(upload_lines) + "\n",
         encoding="utf-8",

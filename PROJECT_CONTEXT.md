@@ -175,6 +175,20 @@ Work alternates between **Claude Code, Codex, and Antigravity** across sessions.
 
 > One entry per work block: agent · what changed · next step · unverified.
 
+- **2026-06-28 — Codex** · Prepared a continuation-tuning setup for the weight-
+  update lane so the repo now has the *remaining 40* train cases after the
+  first 60 in `judy/tuning_datasets/sft/gemini35-flash/judy_objective_continue_60_to_100/`.
+  Added `scripts/prepare_continuation_sft.py` to derive the tail bundle from
+  cumulative checkpoints, and extended `scripts/run_gemini_sft.py` to emit a
+  continuation-aware request stub with `custom_base_model`. Current tuned-model
+  target is `projects/209722657949/locations/us/models/5181954321243176960@1`
+  (the completed `v60` model). Repo-side upload / request assets were generated
+  for `judy-judge-sft-v100-cont-from-v60`. · Next: submit the continuation job
+  through the direct Vertex API path if supported for Gemini tuned models, or
+  confirm that Gemini continuation-tuning is blocked and fall back to a fresh
+  100-case run for comparison. · Unverified: whether Vertex actually accepts a
+  previously tuned Gemini model as `custom_base_model`; local `gcloud` help
+  mentions it but the installed CLI rejected `--custom-base-model`.
 - **2026-06-28 — Codex** · Updated the UI tuning page so it now uses real
   artifact-backed `SFT-20` and `SFT-40` evaluation JSONs, removed the stale
   placeholder `+0.6pp` story, and added a simple sample-size trend chart that
