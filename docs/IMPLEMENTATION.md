@@ -40,6 +40,11 @@ pointwise toggle). Reads `src/mock/run.ts`; shapes mirror the planned API.
 schema, judge fn, tier→label/score ground truth, harness+metrics+reflect paths),
 `judy/api/server.py` (FastAPI + SSE to replace the mock), `scripts/smoke_antigravity.py`.
 
+**Weight-update track (planned, not yet implemented):** see
+`docs/MODEL_TUNING_PLAN.md`. Current plan is supervised fine-tuning on
+`Gemini 3.5 Flash` plus a separate preference-tuning path on `Gemini 2.5 Flash`
+through Google Cloud with JSONL datasets in GCS.
+
 ## Key design choices (and why)
 
 - **Policy as a markdown file, not weights.** "Self-learning" = context

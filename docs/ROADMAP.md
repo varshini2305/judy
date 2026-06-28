@@ -9,6 +9,7 @@ This is our living, feedback-organized backlog. Status: **Now** (this iter) · *
 
 ## Judge-Improvement Methods
 - [Now] Self-rewriting SKILL.md (rubric + knowledge list + strategies); order-swap debias; spec->checklist
+- [Next] Gemini weight-update track: SFT on Gemini 3.5 Flash; preference tuning on Gemini 2.5 Flash
 - [Next] Selective Antigravity grounding (code_execution + google_search) on uncertain / claim-heavy items
 - [Later] Few-shot error-memory in prompt; sharper criteria extraction
 - [Later · compute] Fine-tune judge (Self-Taught Evaluators; Self-Rationalization DPO); RL judge (J1-style consistency reward)

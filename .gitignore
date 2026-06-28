@@ -23,6 +23,8 @@ venv/
 # Judy run artifacts (generated; not source of truth)
 runs/
 judy/data/datasets/*.jsonl
+judy/data/datasets/*_metadata.json
+judy/tuning_datasets/
 
 # Node / Vite UI
 ui/node_modules/

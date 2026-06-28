@@ -58,6 +58,20 @@ not training weights.
 - Docs drift: the project is moving quickly enough that README, implementation
   notes, and project context can diverge from the code within a session.
 
+## Weight-update track
+
+- A concrete plan now exists in `docs/MODEL_TUNING_PLAN.md`.
+- Current model split:
+  - SFT on `Gemini 3.5 Flash`
+  - preference tuning on `Gemini 2.5 Flash`
+- Chosen cloud path:
+  - region `us-central1`
+  - ADC auth
+  - GCS as the dataset store, not MongoDB
+- The next code step is exporter scripts, not cloud job launchers yet:
+  - `scripts/export_sft_dataset.py`
+  - `scripts/export_preference_dataset.py`
+
 ## How I should use this file
 
 - Refresh it after any substantial Codex scan, review, or implementation block.
