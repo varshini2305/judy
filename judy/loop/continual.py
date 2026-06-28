@@ -79,16 +79,29 @@ async def run_continual_benchmark(
     sample_path: Path,
     *,
     dev_n: int = 40,
+    test_path: Path | None = None,
     batch_size: int | None = None,
     start_policy: str | None = None,
     progress: Progress = print,
 ) -> dict:
-    """Split a benchmark sample into dev/held-out, learn on dev, measure on held-out."""
+    """Learn on a dev stream, measure on a disjoint held-out split.
+
+    If ``test_path`` is given, learn on ALL of ``sample_path`` and measure on
+    ``test_path`` (asserting the two are disjoint) — so V2 can be graded on the
+    exact same test set as V0/V1 without training on it. Otherwise split
+    ``sample_path`` into dev/held-out internally.
+    """
     batch_size = batch_size or CONFIG.continual_batch_size
     items = load_benchmark_items(Path(sample_path))
-    rng = random.Random(7)
-    rng.shuffle(items)  # stratify dev/held-out away from subset ordering
-    dev, held = items[:dev_n], items[dev_n:]
+    if test_path is not None:
+        dev = items
+        held = load_benchmark_items(Path(test_path))
+        overlap = {i.id for i in dev} & {h.id for h in held}
+        assert not overlap, f"dev/test overlap ({len(overlap)} items) — not a fair test"
+    else:
+        rng = random.Random(7)
+        rng.shuffle(items)  # stratify dev/held-out away from subset ordering
+        dev, held = items[:dev_n], items[dev_n:]
     items_by_id = {i.id: i for i in dev}
 
     client = GeminiClient()
