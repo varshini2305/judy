@@ -44,6 +44,24 @@ class Verdict(BaseModel):
     criteria: list[Criterion] = Field(default_factory=list)
 
 
+class JudgeRecord(BaseModel):
+    """One judged comparison, normalized to canonical orientation, for logging.
+
+    ``verdict`` is the winning *canonical* side (A = candidates[0]) regardless of
+    whether answers were presented swapped, so records compare cleanly across
+    order-swapped passes.
+    """
+
+    item_id: str
+    task_type: str
+    swap: bool
+    verdict: Side
+    margin: int
+    rationale: str
+    criteria: list[Criterion] = Field(default_factory=list)
+    correct: bool
+
+
 class Item(BaseModel):
     """One evaluation unit. ``candidates`` holds exactly two answers at judge time.
 
