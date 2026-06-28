@@ -44,6 +44,7 @@ async def run_variants(path: Path = DEFAULT_SAMPLE) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
     results = []
     for v in VARIANTS:
+        before = client.usage.snapshot()
         records = await eval_split(client, v["policy"], items, order_swap=True)
         overall = compute_metrics(records)
         # Per-item evidence: every judgment (item, subset, verdict, correct, order).
@@ -57,8 +58,14 @@ async def run_variants(path: Path = DEFAULT_SAMPLE) -> dict:
             "overall": overall.model_dump(),
             "per_subset": {s: m.agreement for s, m in _by_subset(records).items()},
             "records_file": str(rec_path),
+            "usage": client.usage.since(before).as_dict(),
         })
-    return {"n_items": len(items), "dataset": str(path), "variants": results}
+    return {
+        "n_items": len(items),
+        "dataset": str(path),
+        "variants": results,
+        "total_usage": client.usage.as_dict(),
+    }
 
 
 def _print(result: dict) -> None:
@@ -66,10 +73,15 @@ def _print(result: dict) -> None:
     print(f"\n=== Judge variants on the SAME {result['n_items']} RewardBench items ===\n")
     for v in variants:
         o = v["overall"]
+        u = v.get("usage", {})
         print(f"[{v['label']}]  {v['description']}")
         print(f"    agreement {o['agreement']:.1%} | position-consistency "
               f"{o['position_consistency']:.1%} | pos-consistent agreement "
-              f"{o['position_consistent_agreement']:.1%}\n")
+              f"{o['position_consistent_agreement']:.1%}")
+        if u:
+            print(f"    cost: {u['calls']} calls · {u['input_tokens']:,}+{u['output_tokens']:,} tok · ~${u['cost_usd']:.4f}\n")
+        else:
+            print()
 
     subsets = sorted(variants[0]["per_subset"])
     head = "  ".join(f"{v['label']:>22}" for v in variants)
@@ -79,6 +91,10 @@ def _print(result: dict) -> None:
         print(f"{s:24s}{cells}")
     overall_cells = "  ".join(f"{v['overall']['agreement']:>21.0%}" for v in variants)
     print(f"{'OVERALL':24s}{overall_cells}")
+    tu = result.get("total_usage")
+    if tu:
+        print(f"\nTotal cost this run: {tu['calls']} calls · "
+              f"{tu['input_tokens']:,}+{tu['output_tokens']:,} tokens · ~${tu['cost_usd']:.4f}")
 
 
 ADVERSARIAL_SAMPLE = CONFIG.runs_dir.parent / "judy/data/datasets/llmbar_adversarial_100.jsonl"

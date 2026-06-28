@@ -16,6 +16,7 @@ from typing import Any
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from judy.config import CONFIG, Config
+from judy.llm.usage import Usage
 
 try:  # imported lazily-friendly so importing the module never hard-fails
     from google import genai
@@ -57,6 +58,7 @@ class GeminiClient:
         self.model = config.model
         self._client = genai.Client(api_key=config.gemini_api_key)
         self._sema = asyncio.Semaphore(config.max_concurrency)
+        self.usage = Usage()  # accumulates real token usage across calls
 
     @retry(stop=stop_after_attempt(4), wait=wait_exponential(multiplier=1, min=1, max=20))
     async def _raw_generate(self, prompt: str, *, system_instruction: str | None, temperature: float) -> str:
@@ -68,6 +70,12 @@ class GeminiClient:
         resp = await self._client.aio.models.generate_content(
             model=self.model, contents=prompt, config=cfg
         )
+        um = getattr(resp, "usage_metadata", None)
+        if um is not None:
+            self.usage.add(
+                getattr(um, "prompt_token_count", 0),
+                getattr(um, "candidates_token_count", 0),
+            )
         return resp.text or ""
 
     async def generate_json(

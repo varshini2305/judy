@@ -74,6 +74,7 @@ async def run_baseline(path: Path = DEFAULT_SAMPLE, *, order_swap: bool = True) 
         "n_items": len(items),
         "overall": compute_metrics(records),
         "per_subset": _by_subset(records),
+        "usage": client.usage,
     }
 
 
@@ -88,6 +89,8 @@ def _print(result: dict) -> None:
     print("\n  By subset:")
     for sub, m in result["per_subset"].items():
         print(f"    {sub:24s} agreement {m.agreement:.0%}  (n={m.n_items})")
+    if result.get("usage"):
+        print(f"\n  Cost: {result['usage'].summary()}")
 
 
 def main() -> None:

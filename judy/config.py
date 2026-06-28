@@ -54,6 +54,11 @@ class Config:
     gemini_api_key: str | None = field(default_factory=lambda: os.getenv("GEMINI_API_KEY"))
     max_concurrency: int = field(default_factory=lambda: _env_int("JUDY_MAX_CONCURRENCY", 8))
 
+    # Gemini 3.5 Flash standard pricing (USD per 1M tokens), as of May 2026.
+    # Verify at https://ai.google.dev/gemini-api/docs/pricing. Batch/Flex is ~50% off.
+    price_input_per_m: float = field(default_factory=lambda: _env_float("JUDY_PRICE_INPUT_PER_M", 1.50))
+    price_output_per_m: float = field(default_factory=lambda: _env_float("JUDY_PRICE_OUTPUT_PER_M", 9.00))
+
     # --- Self-improvement loop --------------------------------------------
     n_iters: int = field(default_factory=lambda: _env_int("JUDY_N_ITERS", 4))
     # "anchored" = errors scored against known_ordering (real signal);
