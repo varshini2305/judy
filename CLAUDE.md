@@ -12,6 +12,7 @@
 
 ## Start-of-session protocol (every agent, every session)
 
+0. Lost? `docs/INDEX.md` maps which doc holds what.
 1. Read `PROJECT_CONTEXT.md` (state) and this file (rules).
 2. **Reconcile before trusting:** check `git log`/diff and actual files against
    what the docs claim. Code may have changed in another agent's session. Fix
