@@ -65,6 +65,27 @@ async def main() -> None:
     }
     (run_dir / "metrics.json").write_text(json.dumps(summary, indent=2))
 
+    # Emit UI-consumable curve data so the dashboard can chart this run.
+    ui_dir = CONFIG.runs_dir.parent / "ui/public/curves"
+    ui_dir.mkdir(parents=True, exist_ok=True)
+    ui_refs = {"V0 vanilla": 0.81, "V1 rubric": 0.855, "V2 self-critique": 0.86}
+    ui_data = {
+        "run_id": run_id, "variant": "V5 — teacher-driven continual learning",
+        "description": "Gemini judge learns from a GPT (gpt-5.4-nano) teacher: every 3 examples it "
+                       "appends the teacher's lessons + the corrected case as a few-shot example.",
+        "benchmark": "LLMBar-Adversarial (100-item test, 40-item dev)",
+        "judge_model": CONFIG.model, "teacher_model": CONFIG.teacher_model,
+        "curve": out["curve"], "references": ui_refs,
+        "peak": max(p["agreement"] for p in out["curve"]), "final": final,
+        "cost_usd": round(g.cost_usd() + tch.cost_usd(), 4),
+    }
+    (ui_dir / f"{run_id}.json").write_text(json.dumps(ui_data, indent=2))
+    idx_path = ui_dir / "index.json"
+    idx = json.loads(idx_path.read_text()) if idx_path.exists() else []
+    idx = [r for r in idx if r["run_id"] != run_id]
+    idx.insert(0, {"run_id": run_id, "variant": ui_data["variant"], "final": final, "peak": ui_data["peak"]})
+    idx_path.write_text(json.dumps(idx, indent=2))
+
     print("\n=== V5 learning curve (held-out agreement) ===")
     for p in out["curve"]:
         print(f"  after {p['after']:>2} examples: {p['agreement']:.1%}")

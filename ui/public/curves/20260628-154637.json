@@ -1,0 +1,42 @@
+{
+  "run_id": "20260628-154637",
+  "variant": "V5 \u2014 teacher-driven continual learning",
+  "description": "Gemini judge learns from a GPT (gpt-5.4-nano) teacher: every 3 examples it appends the teacher lessons + the corrected case as a few-shot example.",
+  "benchmark": "LLMBar-Adversarial (100-item test, 40-item dev)",
+  "judge_model": "gemini-3.5-flash",
+  "teacher_model": "gpt-5.4-nano",
+  "curve": [
+    {
+      "after": 0,
+      "agreement": 0.855
+    },
+    {
+      "after": 10,
+      "agreement": 0.885
+    },
+    {
+      "after": 20,
+      "agreement": 0.885
+    },
+    {
+      "after": 30,
+      "agreement": 0.885
+    },
+    {
+      "after": 40,
+      "agreement": 0.865
+    },
+    {
+      "after": 40,
+      "agreement": 0.865
+    }
+  ],
+  "references": {
+    "V0 vanilla": 0.81,
+    "V1 rubric": 0.855,
+    "V2 self-critique": 0.86
+  },
+  "peak": 0.885,
+  "final": 0.865,
+  "cost_usd": 3.2985
+}
