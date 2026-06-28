@@ -156,13 +156,13 @@ Work alternates between **Claude Code, Codex, and Antigravity** across sessions.
 
 - **2026-06-27 — Claude** · Set up context system + folded iteration-1 brief
   into this doc (decisions D1–D5). · Next: scaffold. · Unverified: git/model id.
-- **2026-06-27 — Claude** · Built headless core + the self-improvement loop
-  (reflect anchored/unanchored, run+logging). Added `docs/IMPLEMENTATION.md`.
-  Wrote offline test suite (stub client, 0 credits) — full loop + metrics +
-  JSON + skill mutation; caught/fixed a dedup bug. 9 commits, none pushed. ·
-  Next: decide on a cost-bounded REAL end-to-end run to prove anchored improves,
-  then build API + UI. · Unverified: real-data behavior (anchored lift),
-  Antigravity smoke test.
+- **2026-06-27 — Claude** · Built headless core + self-improvement loop + offline
+  tests (0 credits). Pushed to origin (12 commits total). Decided D6 (pairwise +
+  pointwise rubric-decomposed). Built the full UI (4 screens) on mock data — dev
+  server runs at :5173; user reviewing the look. · Next: implement pointwise
+  backend, then FastAPI+SSE server to replace the mock, then the real run +
+  Antigravity smoke test. · Unverified: real-data anchored lift; pointwise
+  backend unbuilt; live API unbuilt.
 
 ---
 

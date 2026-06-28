@@ -32,8 +32,13 @@ demonstrating that self-improvement needs an external anchor.
 | `judy/loop/reflect.py` | Error → edits | One LLM call; anchored vs unanchored prompt; enforces task-GENERAL lessons |
 | `judy/loop/run.py` | The loop + logging | baseline + N iters per mode, early stopping, writes `runs/{id}/` |
 
-**Not yet built:** `judy/api/server.py` (FastAPI + SSE), `ui/` (React dashboard),
-`scripts/smoke_antigravity.py`.
+**UI built (mock-driven):** `ui/` — Vite+React+TS+Tailwind+Recharts+diff-viewer,
+4 screens (Control Room, Skill Evolution, Item Inspector, Try Judy w/ pairwise+
+pointwise toggle). Reads `src/mock/run.ts`; shapes mirror the planned API.
+
+**Not yet built:** pointwise backend (D6: rubric-decomposed independent eval —
+schema, judge fn, tier→label/score ground truth, harness+metrics+reflect paths),
+`judy/api/server.py` (FastAPI + SSE to replace the mock), `scripts/smoke_antigravity.py`.
 
 ## Key design choices (and why)
 
