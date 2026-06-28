@@ -17,7 +17,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-load_dotenv(REPO_ROOT / ".env")
+# override=True so the project's .env is authoritative — a stale OPENAI_API_KEY /
+# GEMINI_API_KEY in the shell environment must not silently shadow it.
+load_dotenv(REPO_ROOT / ".env", override=True)
 
 
 def _env_bool(name: str, default: bool) -> bool:

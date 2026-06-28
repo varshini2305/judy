@@ -58,5 +58,5 @@ class Usage:
         return (
             f"{self.n_calls} calls · {self.input_tokens:,} in + {self.output_tokens:,} out "
             f"tokens · ~${self.cost_usd():.4f} "
-            f"(@ ${CONFIG.price_input_per_m:g}/{CONFIG.price_output_per_m:g} per 1M)"
+            f"(@ ${self._pin():g}/{self._pout():g} per 1M)"
         )
