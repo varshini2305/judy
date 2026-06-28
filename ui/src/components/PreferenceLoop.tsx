@@ -83,6 +83,53 @@ interface SimulationResponse {
   summary: string;
 }
 
+async function readResponseBody(response: Response): Promise<string> {
+  try {
+    return await response.text();
+  } catch {
+    return "";
+  }
+}
+
+function buildApiError(path: string, response: Response, body: string): Error {
+  const contentType = response.headers.get("content-type") ?? "";
+  const trimmed = body.trim();
+
+  if (contentType.includes("text/html") || trimmed.startsWith("<!doctype") || trimmed.startsWith("<html")) {
+    return new Error(
+      `API route ${path} returned HTML instead of JSON (${response.status} ${response.statusText}). ` +
+      "The frontend is likely serving its SPA fallback for /api, which usually means the backend proxy is not configured or not reachable."
+    );
+  }
+
+  if (!response.ok) {
+    const detail = trimmed ? ` Response: ${trimmed.slice(0, 200)}` : "";
+    return new Error(`API route ${path} failed (${response.status} ${response.statusText}).${detail}`);
+  }
+
+  return new Error(`API route ${path} did not return valid JSON.`);
+}
+
+async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(path, init);
+  const body = await readResponseBody(response);
+
+  if (!response.ok) {
+    throw buildApiError(path, response, body);
+  }
+
+  const contentType = response.headers.get("content-type") ?? "";
+  if (contentType.includes("text/html") || body.trim().startsWith("<!doctype") || body.trim().startsWith("<html")) {
+    throw buildApiError(path, response, body);
+  }
+
+  try {
+    return JSON.parse(body) as T;
+  } catch {
+    throw buildApiError(path, response, body);
+  }
+}
+
 export default function PreferenceLoop() {
   const [connected, setConnected] = useState<boolean | null>(null);
   const [pair, setPair] = useState<PreferencePair | null>(null);
@@ -106,22 +153,11 @@ export default function PreferenceLoop() {
     setBusy(true);
     setError(null);
     try {
-      const [healthResponse, stateResponse, nextResponse, loopReadyResponse] = await Promise.all([
-        fetch("/api/health"),
-        fetch("/api/preference/state"),
-        fetch("/api/preference/next"),
-        fetch("/api/preference/loop-ready"),
-      ]);
-
-      if (!healthResponse.ok || !stateResponse.ok || !nextResponse.ok || !loopReadyResponse.ok) {
-        throw new Error("Preference backend is not reachable from this UI.");
-      }
-
       const [, stateJson, nextJson, loopReadyJson] = await Promise.all([
-        healthResponse.json(),
-        stateResponse.json() as Promise<PreferenceState>,
-        nextResponse.json() as Promise<PreferencePair>,
-        loopReadyResponse.json() as Promise<LoopReadyResponse>,
+        fetchJson<Record<string, unknown>>("/api/health"),
+        fetchJson<PreferenceState>("/api/preference/state"),
+        fetchJson<PreferencePair>("/api/preference/next"),
+        fetchJson<LoopReadyResponse>("/api/preference/loop-ready"),
       ]);
 
       setConnected(true);
@@ -137,19 +173,10 @@ export default function PreferenceLoop() {
   }
 
   async function refreshAfterFeedback(feedbackJson: PreferenceFeedbackResult) {
-    const [stateResponse, nextResponse, loopReadyResponse] = await Promise.all([
-      fetch("/api/preference/state"),
-      fetch("/api/preference/next"),
-      fetch("/api/preference/loop-ready"),
-    ]);
-    if (!stateResponse.ok || !nextResponse.ok || !loopReadyResponse.ok) {
-      throw new Error("Saved feedback, but failed to refresh the preference loop.");
-    }
-
     const [stateJson, nextJson, loopReadyJson] = await Promise.all([
-      stateResponse.json() as Promise<PreferenceState>,
-      nextResponse.json() as Promise<PreferencePair>,
-      loopReadyResponse.json() as Promise<LoopReadyResponse>,
+      fetchJson<PreferenceState>("/api/preference/state"),
+      fetchJson<PreferencePair>("/api/preference/next"),
+      fetchJson<LoopReadyResponse>("/api/preference/loop-ready"),
     ]);
 
     setLastResult(feedbackJson);
@@ -164,15 +191,11 @@ export default function PreferenceLoop() {
     setBusy(true);
     setError(null);
     try {
-      const feedbackResponse = await fetch("/api/preference/feedback", {
+      const feedbackJson = await fetchJson<PreferenceFeedbackResult>("/api/preference/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ index: pair.index, note, ...payload }),
       });
-      if (!feedbackResponse.ok) {
-        throw new Error("Failed to record preference feedback.");
-      }
-      const feedbackJson = (await feedbackResponse.json()) as PreferenceFeedbackResult;
       await refreshAfterFeedback(feedbackJson);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Unknown feedback error");
@@ -185,10 +208,7 @@ export default function PreferenceLoop() {
     setBusy(true);
     setError(null);
     try {
-      const resetResponse = await fetch("/api/preference/reset", { method: "POST" });
-      if (!resetResponse.ok) {
-        throw new Error("Failed to reset preference session.");
-      }
+      await fetchJson<{ ok: true }>("/api/preference/reset", { method: "POST" });
       setLastResult(null);
       setSimulation(null);
       await initialize();
@@ -215,14 +235,15 @@ export default function PreferenceLoop() {
     setBusy(true);
     setError(null);
     try {
-      const response = await fetch("/api/preference/simulate-run");
-      if (!response.ok) {
-        const message = response.status === 400
-          ? "Need at least 4 labeled feedback events before a simulation can run."
-          : "Failed to run the self-improvement simulation.";
-        throw new Error(message);
+      let body: SimulationResponse;
+      try {
+        body = await fetchJson<SimulationResponse>("/api/preference/simulate-run");
+      } catch (error) {
+        if (error instanceof Error && error.message.includes("(400 Bad Request)")) {
+          throw new Error("Need at least 4 labeled feedback events before a simulation can run.");
+        }
+        throw error;
       }
-      const body = (await response.json()) as SimulationResponse;
       setSimulation(body);
     } catch (simulationError) {
       setError(simulationError instanceof Error ? simulationError.message : "Unknown simulation error");
