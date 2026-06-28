@@ -1,0 +1,51 @@
+{
+  "_note": "Consolidated real results for all judge variants — for an interactive comparison UI. See docs/FINDINGS.md for the written analysis.",
+  "benchmark": "LLMBar-Adversarial",
+  "test_set": "llmbar_adversarial_100.jsonl — 100 items (25 each: GPTInst/GPTOut/manual/neighbor), order-swap on",
+  "train_set": "llmbar_adversarial_dev40.jsonl — 40 disjoint items (learning variants only)",
+  "judge_model": "gemini-3.5-flash",
+  "training_means": "updating the judge's CONTEXT (policy text + in-context examples), not model weights",
+  "variants": [
+    {
+      "id": "V0", "label": "baseline-vanilla", "learns": false, "teacher_model": null,
+      "method": "Standard LLM-as-judge: one call, generic 'which is better?' prompt, no rubric.",
+      "trains_on": "nothing (static)", "agreement": 0.810, "pos_consistency": 0.900, "cost_usd": null,
+      "verdict": "control", "note": "The bar to beat."
+    },
+    {
+      "id": "V1", "label": "structured-rubric", "learns": false, "teacher_model": null,
+      "method": "Hand-engineered policy: derive criteria, judge correctness independently of fluency, explicit bias guards.",
+      "trains_on": "nothing (static)", "agreement": 0.855, "pos_consistency": 0.930, "cost_usd": 0.8,
+      "verdict": "promising-but-context-dependent",
+      "note": "+4.5 on adversarial, but the SAME rubric regressed -9 on easy/safety (RewardBench)."
+    },
+    {
+      "id": "V2", "label": "continual self-critique", "learns": true, "teacher_model": null,
+      "method": "Streams dev examples; every 3, reflects on its own errors vs the label and appends task-general lessons to its policy.",
+      "trains_on": "40 dev", "agreement": 0.860, "pos_consistency": 0.980, "cost_usd": 0.81,
+      "verdict": "promising-robustness", "curve_run": null,
+      "note": "Only 2 updates fired (sparse errors). Net distinct-item gain +2; biggest win is order-consistency 90->98%."
+    },
+    {
+      "id": "V5", "label": "teacher-driven (cross-family)", "learns": true, "teacher_model": "gpt-5.4-nano",
+      "method": "Gemini judge; a GPT teacher (shown the answer key) diagnoses each error and writes a lesson + a few-shot example. Both grow the judge's context every 3 examples.",
+      "trains_on": "40 dev", "agreement": 0.865, "peak": 0.885, "pos_consistency": 0.930, "cost_usd": 3.30,
+      "verdict": "most-promising", "curve_run": "20260628-154637",
+      "note": "Peaked at 88.5% (best of any variant) then drifted to 86.5%. Teacher cost negligible ($0.0005); $3.30 was the curve checkpoints. Early-stopping -> 88.5%."
+    }
+  ],
+  "findings": {
+    "promising": [
+      "Cross-family grounded teaching (V5) beats self-critique (V2) — a different model family, shown the answer key, gives better lessons than self-reflection. Peak 88.5%.",
+      "A better starting policy (V1) helps (+4.5) cheaply.",
+      "Continual learning improves robustness (position-consistency) more than raw accuracy.",
+      "The learning curve reveals dynamics a before/after number hides (peak-then-drift)."
+    ],
+    "limited": [
+      "Hand-engineered rubrics are context-dependent — V1 helped on adversarial but regressed on easy/safety.",
+      "More continual learning over-corrects (drift): keep best-on-validation, not the final policy.",
+      "Sparse-error bottleneck: a strong base judge makes few mistakes, so only 2-3 updates fire — the ceiling is the data's hard errors, not the method.",
+      "Objective benchmarks (JudgeBench 97%) are saturated — only adversarial style has headroom."
+    ]
+  }
+}

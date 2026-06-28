@@ -16,6 +16,7 @@
 | **`docs/IMPLEMENTATION.md`** | **What's implemented + how**: module map, run commands, cost-discipline hooks | You need to understand the code structure | When modules land/change |
 | **`docs/DESIGN_DECISIONS.md`** | **Why**: design + stack choices, alternatives, trade-offs, visual language | You're questioning or extending a choice | When a decision is made/revised |
 | **`docs/VARIANTS.md`** | **Central registry of judge variants** (V0/V1/V2/V5…): what each is, models, train/test data, real results vs baseline; how to add a variant | You're implementing or comparing a judge variant | When a variant is added/run |
+| **`docs/FINDINGS.md`** | **The report**: what improves an LLM-as-judge and what doesn't, *with reasons* — promise/limits of each method, the core insight, recommendations | You want the analyzed conclusions across all experiments | When results change |
 | **`docs/EXPERIMENT_PLAN.md`** | Method **theory**: the top methods to beat a vanilla judge + what's deferred | Choosing which improvement method to try | When the method shortlist changes |
 | **`docs/DEMO_PLAN.md`** | Preference-learning demo + baseline results (RewardBench/LLMBar) | Building the user-preference demo or baselines | As demo/baselines evolve |
 | **`docs/MODEL_TUNING_PLAN.md`** | Concrete **weight-update plan**: Gemini tuning split, GCS layout, dataset schemas, build order | You are working on model updates rather than context-only self-improvement | When the tuning track changes |
