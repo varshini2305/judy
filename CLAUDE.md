@@ -49,5 +49,8 @@
 
 - Keep `PROJECT_CONTEXT.md` refreshed roughly every 20 min of active work and
   before any stopping point.
+- Keep `docs/IMPLEMENTATION.md` current: what's implemented, a high-level of how,
+  and concise reasoning for design/stack choices. Update it when modules land or
+  change.
 - Don't repeat instructions: when the user states a new "how to" preference,
   record it here.
