@@ -104,6 +104,13 @@ Tailwind+shadcn+Recharts) + `scripts/smoke_antigravity.py` + `docs/ROADMAP.md`.
 - **D4 — Core demo result:** anchored-vs-unanchored ablation on held-out unseen
   task types. (2026-06-27)
 - **D5 — Ground truth by construction** via quality tiers A>B>C>D. (2026-06-27)
+- **D6 — Judge supports TWO modes, one shared policy:** *pairwise* (A vs B,
+  headline) and *pointwise* (independent eval). Pointwise output is
+  **rubric-decomposed**: per-criterion met/unmet + holistic verdict (pass/fail)
+  + 1–5 score. Reuses the tiered dataset (tier→label/score is ground truth) and
+  the same reflect→rewrite loop. Pairwise stays the demo headline; pointwise is
+  a first-class second capability (shown in Try Judy, optional 2nd RSI track).
+  (2026-06-27)
 
 ## Open questions / to confirm
 
