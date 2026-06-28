@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Judy Benchmark Reviewer</title>
+    <style>
+      body { font-family: ui-sans-serif, system-ui, sans-serif; background:#0f1720; color:#e5edf5; margin:0; }
+      .wrap { max-width:1100px; margin:0 auto; padding:24px; }
+      .row { display:flex; gap:16px; flex-wrap:wrap; }
+      .card { background:#16202b; border:1px solid #2a3948; border-radius:16px; padding:16px; }
+      .grow { flex:1 1 0; min-width:320px; }
+      .muted { color:#9fb0c3; font-size:14px; }
+      textarea, select, input[type="text"] { width:100%; background:#0b1118; color:#e5edf5; border:1px solid #34485c; border-radius:10px; padding:10px; }
+      button { background:#22c55e; color:#07110b; border:none; border-radius:999px; padding:10px 16px; font-weight:700; cursor:pointer; }
+      button.secondary { background:#223243; color:#e5edf5; }
+      pre { white-space:pre-wrap; background:#0b1118; padding:12px; border-radius:12px; border:1px solid #263646; }
+      .toolbar { display:flex; gap:8px; flex-wrap:wrap; margin:16px 0; }
+      .choice { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+      .small { font-size:12px; color:#8ea1b5; }
+      .pill { display:inline-block; background:#223243; border-radius:999px; padding:4px 10px; font-size:12px; color:#b5c5d6; margin-right:8px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Judy Benchmark Reviewer</h1>
+      <p class="muted">Load a review JSONL file, score answers independently, record pairwise preference, and export your annotations.</p>
+
+      <div class="toolbar">
+        <input id="fileInput" type="file" accept=".jsonl,.json" />
+        <button class="secondary" id="prevBtn">Prev</button>
+        <button class="secondary" id="nextBtn">Next</button>
+        <button class="secondary" id="saveBtn">Save in browser</button>
+        <button class="secondary" id="exportBtn">Export annotations</button>
+        <button class="secondary" id="importBtn">Import annotations</button>
+        <input id="importFile" type="file" accept=".json,.jsonl" style="display:none" />
+      </div>
+
+      <div id="status" class="muted">No dataset loaded.</div>
+
+      <div id="app" style="display:none">
+        <div class="card" style="margin:16px 0">
+          <div><span class="pill" id="caseId"></span><span class="pill" id="caseMode"></span><span class="pill" id="caseType"></span></div>
+          <p><strong>System prompt</strong></p>
+          <pre id="systemPrompt"></pre>
+          <p><strong>Question</strong></p>
+          <pre id="question"></pre>
+        </div>
+
+        <div class="row">
+          <div class="card grow">
+            <h2>Answer A</h2>
+            <pre id="answerA"></pre>
+            <label>Independent score (1-5)</label>
+            <select id="scoreA">
+              <option value="">Unset</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+            </select>
+            <label>Comments on A</label>
+            <textarea id="commentA" rows="5"></textarea>
+          </div>
+          <div class="card grow">
+            <h2>Answer B</h2>
+            <pre id="answerB"></pre>
+            <label>Independent score (1-5)</label>
+            <select id="scoreB">
+              <option value="">Unset</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+            </select>
+            <label>Comments on B</label>
+            <textarea id="commentB" rows="5"></textarea>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <h2>Pairwise evaluation</h2>
+          <div class="choice">
+            <label><input type="radio" name="pairwise" value="A" /> Prefer A</label>
+            <label><input type="radio" name="pairwise" value="B" /> Prefer B</label>
+            <label><input type="radio" name="pairwise" value="tie" /> Tie / equal</label>
+            <label><input type="radio" name="pairwise" value="skip" /> Skip</label>
+          </div>
+          <label style="display:block; margin-top:12px">Overall notes</label>
+          <textarea id="overallComment" rows="4"></textarea>
+          <p class="small">Annotations are stored locally in your browser until exported.</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const STORAGE_KEY = "judy-benchmark-review-v1";
+      let rows = [];
+      let annotations = {};
+      let index = 0;
+
+      const els = {
+        fileInput: document.getElementById("fileInput"),
+        prevBtn: document.getElementById("prevBtn"),
+        nextBtn: document.getElementById("nextBtn"),
+        saveBtn: document.getElementById("saveBtn"),
+        exportBtn: document.getElementById("exportBtn"),
+        importBtn: document.getElementById("importBtn"),
+        importFile: document.getElementById("importFile"),
+        status: document.getElementById("status"),
+        app: document.getElementById("app"),
+        caseId: document.getElementById("caseId"),
+        caseMode: document.getElementById("caseMode"),
+        caseType: document.getElementById("caseType"),
+        systemPrompt: document.getElementById("systemPrompt"),
+        question: document.getElementById("question"),
+        answerA: document.getElementById("answerA"),
+        answerB: document.getElementById("answerB"),
+        scoreA: document.getElementById("scoreA"),
+        scoreB: document.getElementById("scoreB"),
+        commentA: document.getElementById("commentA"),
+        commentB: document.getElementById("commentB"),
+        overallComment: document.getElementById("overallComment"),
+      };
+
+      function loadSaved() {
+        try { annotations = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
+        catch { annotations = {}; }
+      }
+
+      function saveCurrent() {
+        if (!rows.length) return;
+        const row = rows[index];
+        annotations[row.id] = {
+          score_a: els.scoreA.value || null,
+          score_b: els.scoreB.value || null,
+          comment_a: els.commentA.value || "",
+          comment_b: els.commentB.value || "",
+          pairwise: (document.querySelector('input[name="pairwise"]:checked') || {}).value || null,
+          overall_comment: els.overallComment.value || "",
+        };
+      }
+
+      function persist() {
+        saveCurrent();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(annotations));
+        els.status.textContent = `Saved locally. ${Object.keys(annotations).length} annotated cases.`;
+      }
+
+      function render() {
+        if (!rows.length) return;
+        const row = rows[index];
+        const ann = annotations[row.id] || {};
+        els.app.style.display = "block";
+        els.caseId.textContent = row.id;
+        els.caseMode.textContent = row.mode;
+        els.caseType.textContent = row.task_type;
+        els.systemPrompt.textContent = row.system_prompt;
+        els.question.textContent = row.question;
+        els.answerA.textContent = row.answer_a;
+        els.answerB.textContent = row.answer_b;
+        els.scoreA.value = ann.score_a || "";
+        els.scoreB.value = ann.score_b || "";
+        els.commentA.value = ann.comment_a || "";
+        els.commentB.value = ann.comment_b || "";
+        els.overallComment.value = ann.overall_comment || "";
+        document.querySelectorAll('input[name="pairwise"]').forEach(el => {
+          el.checked = el.value === ann.pairwise;
+        });
+        els.status.textContent = `Loaded ${rows.length} cases. Viewing ${index + 1}/${rows.length}. Annotated ${Object.keys(annotations).length}.`;
+      }
+
+      function parseJsonl(text) {
+        return text.split(/\r?\n/).filter(Boolean).map(line => JSON.parse(line));
+      }
+
+      function download(filename, text) {
+        const blob = new Blob([text], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      els.fileInput.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        rows = parseJsonl(await file.text());
+        index = 0;
+        loadSaved();
+        render();
+      });
+
+      els.prevBtn.addEventListener("click", () => {
+        if (!rows.length) return;
+        saveCurrent();
+        index = Math.max(0, index - 1);
+        render();
+      });
+      els.nextBtn.addEventListener("click", () => {
+        if (!rows.length) return;
+        saveCurrent();
+        index = Math.min(rows.length - 1, index + 1);
+        render();
+      });
+      els.saveBtn.addEventListener("click", persist);
+      els.exportBtn.addEventListener("click", () => {
+        persist();
+        download("judy_benchmark_annotations.json", JSON.stringify(annotations, null, 2));
+      });
+      els.importBtn.addEventListener("click", () => els.importFile.click());
+      els.importFile.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        annotations = JSON.parse(await file.text());
+        persist();
+        render();
+      });
+
+      [els.scoreA, els.scoreB, els.commentA, els.commentB, els.overallComment].forEach(el => {
+        el.addEventListener("change", saveCurrent);
+      });
+      document.querySelectorAll('input[name="pairwise"]').forEach(el => {
+        el.addEventListener("change", saveCurrent);
+      });
+      loadSaved();
+    </script>
+  </body>
+</html>
+

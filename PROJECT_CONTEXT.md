@@ -159,6 +159,62 @@ Work alternates between **Claude Code, Codex, and Antigravity** across sessions.
 
 > One entry per work block: agent · what changed · next step · unverified.
 
+- **2026-06-28 — Codex** · Added the first concrete weight-update track:
+  `docs/MODEL_TUNING_PLAN.md`, offline export helpers in `judy/tuning/`,
+  exporter scripts for SFT and simulated-user preference tuning, tests for those
+  exporters, and doc updates pointing the rest of the repo at that plan.
+  Tightened the JudgeBench fetch helper to produce a broader sample. · Next:
+  confirm the exact Agent Platform JSONL schema before cloud job wrappers, then
+  compare tuned judges against the current policy-rewrite baseline. ·
+  Unverified: final Google Cloud tuning request format, tuned-model quality, and
+  the right train/val/test split sizes for the first paid run.
+- **2026-06-28 — Codex** · Added synthetic benchmark generation scaffolding with
+  a minimal OpenAI Responses client, prompt templates for objective and
+  preference pairwise cases, a generator script, a review-row transformer, a
+  browser-based annotation page, and offline tests. Also added a lightweight
+  OpenAI auth check script. · Next: generate and review a first clean synthetic
+  benchmark set, then decide how it should feed evals versus human review. ·
+  Unverified: live OpenAI auth in the target environment, output quality of the
+  generated benchmark, and the right review workflow once human annotations
+  start accumulating.
+- **2026-06-28 — Codex** · Expanded the landing page messaging substantially so
+  the UI now explains Judy's product vision, current execution strategy, latest
+  baseline story, common LLM-as-a-judge limitations, what has worked, what has
+  not, and the stack of ideas being explored from policy rewriting to tuning to
+  jury-style RSI. The copy is now anchored to the actual docs and benchmark
+  notes rather than generic marketing language. Verified `cd ui && npm run build`
+  still succeeds. · Next: visually review the page in-browser, tighten density
+  and hierarchy if needed, and then connect sections to live API-backed numbers
+  as backend work lands. · Unverified: final copy quality after user review,
+  live data integration, and whether the benchmark narrative shifts with new
+  experiments over the next few hours.
+- **2026-06-28 — Codex** · Added a real UI landing/overview screen so the app
+  now opens with product messaging instead of dropping users straight into the
+  internal dashboard. The new screen explains what Judy does, the judge+jury
+  vision, the anchored-vs-unanchored method, current capabilities, and what is
+  still mock-driven or unverified. Verified `cd ui && npm run build`
+  succeeds after the change. · Next: tighten the narrative further with clearer
+  benchmark evidence and replace mock content with live API-backed data once the
+  backend is wired. · Unverified: user-facing copy quality after visual review,
+  live backend integration, and final benchmark-backed claims.
+- **2026-06-28 — Codex** · Added `docs/UI_DEPLOYMENT.md` with a Vercel-first
+  hosting recommendation for the current static UI, plus a GCP-friendly
+  Firebase Hosting path and a containerized Railway / Cloud Run path. Added
+  `ui/Dockerfile`, `ui/Caddyfile`, and `ui/.dockerignore` so the frontend can
+  ship as a portable static container. Verified `cd ui && npm run build`
+  succeeds. · Next: wire the first real hosted URL if requested, then switch
+  the deployed UI from mock data to the live backend once `judy/api/server.py`
+  exists. · Unverified: actual deployed environment, custom domains, and live
+  backend connectivity.
+- **2026-06-28 — Codex** · Added `docs/MODEL_TUNING_PLAN.md` to make the
+  weight-update track concrete: Gemini `3.5 Flash` for supervised fine-tuning,
+  Gemini `2.5 Flash` for preference tuning, GCS-based dataset layout, JSONL
+  intermediate schemas, and a staged build order starting with export scripts.
+  Updated the doc map, roadmap, and implementation notes to point to it. ·
+  Next: implement dataset exporters for SFT and preference tuning, then add
+  thin tuning-job wrappers once the exported schemas are reviewed. ·
+  Unverified: exact Agent Platform JSONL field shapes for our exporters, cloud
+  credentials/project setup, tuned-model quality on held-out + benchmark evals.
 - **2026-06-28 — Codex** · Refreshed the shared context docs for current repo
   reality, tightened the README project framing, added a Codex-specific context
   file for faster cold starts, and prepared coherent commits so completed work
