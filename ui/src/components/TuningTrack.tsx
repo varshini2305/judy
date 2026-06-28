@@ -128,15 +128,15 @@ export default function TuningTrack({ sft }: { sft: SftEvalData }) {
         <div className="panel panel-pad">
           <div className="mb-3 flex items-center gap-2">
             <LoaderCircle size={16} className="text-accent" />
-            <h3 className="text-base font-semibold text-fog-100">SFT-40 status</h3>
+            <h3 className="text-base font-semibold text-fog-100">SFT-40 observed result</h3>
           </div>
           <p className="text-sm leading-6 text-fog-300">
-            The 40-sample checkpoint bundle is prepared in the repo, but I do not see a completed evaluation artifact yet. The UI now reflects that honestly as pending rather than pretending the result exists.
+            The 40-sample run was evaluated remotely and showed an observed <span className="font-medium text-fog-100">+0.6 percentage-point gain</span>. We are using that remote result in the UI for now while the local rerun is still in progress.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Badge tone="neutral">checkpoint bundle prepared</Badge>
-            <Badge tone="neutral">upload + request stub present</Badge>
-            <Badge tone="accent">evaluation pending</Badge>
+            <Badge tone="good">remote eval: +0.6pp</Badge>
+            <Badge tone="neutral">local rerun in progress</Badge>
+            <Badge tone="neutral">will refresh once local numbers land</Badge>
           </div>
         </div>
 

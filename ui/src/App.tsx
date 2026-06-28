@@ -5,9 +5,11 @@ import {
   Home,
   LayoutDashboard,
   LineChart,
+  Users,
 } from "lucide-react";
 import LandingPage from "./components/LandingPage";
 import LearningCurve from "./components/LearningCurve";
+import PreferenceLoop from "./components/PreferenceLoop";
 import VariantDashboard from "./components/VariantDashboard";
 import TuningTrack from "./components/TuningTrack";
 import { Badge } from "./components/ui";
@@ -18,6 +20,7 @@ const TABS = [
   { id: "variants", label: "Variants", icon: LayoutDashboard },
   { id: "curve", label: "Learning Curve", icon: LineChart },
   { id: "tuning", label: "Tuning", icon: FlaskConical },
+  { id: "preference", label: "Preference Loop", icon: Users },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -124,6 +127,7 @@ export default function App() {
             {tab === "variants" && <VariantDashboard experiments={experiments} />}
             {tab === "curve" && <LearningCurve />}
             {tab === "tuning" && <TuningTrack sft={sft} />}
+            {tab === "preference" && <PreferenceLoop />}
           </>
         )}
       </main>

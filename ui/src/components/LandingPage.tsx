@@ -48,8 +48,8 @@ export default function LandingPage({
 
           <div className="max-w-5xl">
             <h1 className="max-w-4xl text-4xl font-semibold tracking-tight text-fog-100 md:text-5xl">
-              Judy
-              <span className="block text-fog-300">Self-learning system of Judge and Juries.</span>
+              <span className="font-bold italic text-fog-100">Judy</span>{" "}
+              <span className="text-fog-300">Self-learning system of Judge and Juries.</span>
             </h1>
             <p className="mt-4 max-w-4xl text-base leading-7 text-fog-300 md:text-lg">
               Judy treats evaluation as a system, not a single prompt. The judge defines the rubric and decision process. Jurors contribute independent perspectives. The goal is a clearer, more reliable evaluator that can be tested, improved, and eventually deliberated rather than trusted blindly.
@@ -57,8 +57,16 @@ export default function LandingPage({
           </div>
 
           <div className="grid gap-3 md:grid-cols-4">
-            <Stat label="Baseline" value={`${(baseline.agreement * 100).toFixed(1)}%`} detail="vanilla LLM-as-a-judge" />
-            <Stat label="Best final" value={`${(bestFinal.agreement * 100).toFixed(1)}%`} detail={`${bestFinal.id} on adversarial held-out`} />
+            <Stat
+              label="Baseline"
+              value={`${(baseline.agreement * 100).toFixed(1)}%`}
+              detail="V0 on LLMBar-Adversarial, 100 test items, order-swap on"
+            />
+            <Stat
+              label="Best final"
+              value={`${(bestFinal.agreement * 100).toFixed(1)}%`}
+              detail={`${bestFinal.id} on the same 100-item adversarial test set`}
+            />
             <Stat label="Best peak" value={`${((bestPeak.peak ?? bestPeak.agreement) * 100).toFixed(1)}%`} detail="teacher-driven with early stopping" />
             <Stat label="Best robustness" value={`${(bestConsistency.pos_consistency * 100).toFixed(1)}%`} detail={`${bestConsistency.id} under answer-order swap`} />
           </div>
@@ -70,7 +78,7 @@ export default function LandingPage({
             />
             <QuickPoint
               title="What is real here"
-              body="This UI now shows artifact-backed results for V0, V1, V2, and V5 on a shared adversarial benchmark, plus the first completed SFT evaluation."
+              body="This UI now shows artifact-backed results for V0, V1, V2, and V5 on LLMBar-Adversarial: a 100-item held-out test set with order-swap enabled, plus the first completed SFT evaluation."
             />
             <QuickPoint
               title="Why it matters"

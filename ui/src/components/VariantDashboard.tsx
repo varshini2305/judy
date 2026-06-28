@@ -157,7 +157,7 @@ export default function VariantDashboard({ experiments }: { experiments: Experim
         <div className="panel panel-pad">
           <div className="mb-4 flex items-center gap-2">
             <Sparkles size={16} className="text-accent" />
-            <h3 className="text-base font-semibold text-fog-100">What each variant is doing</h3>
+            <h3 className="text-base font-semibold text-fog-100">Per-variant setup</h3>
           </div>
           <div className="grid gap-3">
             {experiments.variants.map((variant) => (
@@ -169,8 +169,15 @@ export default function VariantDashboard({ experiments }: { experiments: Experim
                   {variant.learns ? <Badge tone="good">learns</Badge> : <Badge tone="neutral">static</Badge>}
                 </div>
                 <p className="mt-3 text-sm leading-6 text-fog-300">{variant.method}</p>
+                <div className="mt-3 grid gap-2 md:grid-cols-2">
+                  <SetupRow label="Judge model" value={experiments.judge_model} />
+                  <SetupRow label="Teacher" value={variant.teacher_model ?? "none"} />
+                  <SetupRow label="Train data" value={variant.trains_on} />
+                  <SetupRow label="Eval set" value="LLMBar-Adversarial test 100" />
+                  <SetupRow label="Learning mode" value={variant.learns ? "context updates" : "static policy"} />
+                  <SetupRow label="Order swap" value="enabled" />
+                </div>
                 <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                  <span className="chip">train: {variant.trains_on}</span>
                   <span className="chip">agreement {pct(variant.agreement, 1)}</span>
                   <span className="chip">pos-consistency {pct(variant.pos_consistency, 1)}</span>
                   {variant.peak && <span className="chip">peak {pct(variant.peak, 1)}</span>}
@@ -182,6 +189,15 @@ export default function VariantDashboard({ experiments }: { experiments: Experim
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function SetupRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-ink-600/60 bg-ink-800/45 px-3 py-2">
+      <div className="text-[11px] uppercase tracking-[0.18em] text-fog-500">{label}</div>
+      <div className="mt-1 text-sm text-fog-200">{value}</div>
     </div>
   );
 }

@@ -131,8 +131,10 @@ Tailwind+shadcn+Recharts) + `scripts/smoke_antigravity.py` + `docs/ROADMAP.md`.
 - **UI now reads real artifact-backed results** for the overview/results flow in
   `ui/`: the landing page, variants dashboard, learning-curve view, and
   weight-update/tuning view all load bundled experiment JSON (`ui/public/`).
-  The remaining mock/stub surface is the interactive `Try Judy` tab until the
-  live judging API is wired.
+  There is also now a separate **backend-backed preference loop tab** that uses
+  the FastAPI `/api/preference/*` session endpoints for live pairwise user
+  feedback and online preference inference. The remaining stub surface is the
+  old `Try Judy` demo path until the live judgment API is reintroduced in the UI.
 - Benchmarking work now includes a RewardBench baseline, judge-variant
   comparison tooling, and an additional JudgeBench sample fetch helper for a
   harder external baseline track.
@@ -234,6 +236,17 @@ Work alternates between **Claude Code, Codex, and Antigravity** across sessions.
   current focus on the shared LLMBar comparison. · Unverified: live Railway
   rendering after deploy, and whether the user wants the V4 creative/tweet track
   promoted onto the landing page immediately.
+- **2026-06-28 — Codex** · Added a separate **Preference Loop** tab in the UI,
+  backed by the real FastAPI demo endpoints (`/api/preference/next`,
+  `/feedback`, `/state`, `/reset`) rather than a fake local widget. The tab now
+  lets a user rate answer pairs, watch Judy update an inferred preference
+  profile live, and reset the session. Also reworked the variant page so each
+  method has a neater per-variant setup block (judge, teacher, train/eval data,
+  learning mode, order-swap). · Next: decide whether to deploy the API
+  alongside the Railway UI or keep the preference loop local-only until there is
+  a unified backend deployment path. · Unverified: live hosted connectivity for
+  `/api/preference/*` on Railway, since the current hosted UI may still be
+  static-only.
   Unverified: final Google Cloud tuning request format, tuned-model quality, and
   the right train/val/test split sizes for the first paid run.
 - **2026-06-28 — Codex** · Connected the new synthetic Judy benchmark to the
