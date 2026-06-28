@@ -132,9 +132,12 @@ Tailwind+shadcn+Recharts) + `scripts/smoke_antigravity.py` + `docs/ROADMAP.md`.
   `ui/`: the landing page, variants dashboard, learning-curve view, and
   weight-update/tuning view all load bundled experiment JSON (`ui/public/`).
   There is also now a separate **backend-backed preference loop tab** that uses
-  the FastAPI `/api/preference/*` session endpoints for live pairwise user
-  feedback and online preference inference. The remaining stub surface is the
-  old `Try Judy` demo path until the live judgment API is reintroduced in the UI.
+  the FastAPI `/api/preference/*` session endpoints for live user feedback and
+  online preference inference. It now accepts three signal types: best-response
+  picks, explicit pairwise rankings, and absolute per-answer scores, and
+  normalizes them into loop-ready training events for later recursive judge
+  updates. The remaining stub surface is the old `Try Judy` demo path until the
+  live judgment API is reintroduced in the UI.
 - Benchmarking work now includes a RewardBench baseline, judge-variant
   comparison tooling, and an additional JudgeBench sample fetch helper for a
   harder external baseline track.
@@ -172,6 +175,17 @@ Work alternates between **Claude Code, Codex, and Antigravity** across sessions.
 
 > One entry per work block: agent · what changed · next step · unverified.
 
+- **2026-06-28 — Codex** · Updated the UI tuning page so it now uses real
+  artifact-backed `SFT-20` and `SFT-40` evaluation JSONs, removed the stale
+  placeholder `+0.6pp` story, and added a simple sample-size trend chart that
+  makes the tuning direction easy to read at a glance. Added
+  `ui/public/sft/judy_sft_v40_eval.json` and rewired the app to load multiple
+  SFT checkpoints while marking `SFT-60` as pending until a real eval file
+  lands. Verified `npm run build` passes. · Next: finish/unstick the `SFT-60`
+  held-out evaluation, add its artifact to the UI, and reassess whether the
+  tuning curve shows any real upward trend or continued regression. ·
+  Unverified: final `SFT-60` eval numbers; live Railway deploy of the updated
+  tuning page.
 - **2026-06-28 — Claude** · Extended **V4** into a **two-layer judge-jury** (central
   judge learns objective quality signals → guides jurors; jurors model individual
   users). Added a reusable literary-data contract (`docs/V4_LITERARY_DATA.md`,
@@ -247,6 +261,18 @@ Work alternates between **Claude Code, Codex, and Antigravity** across sessions.
   a unified backend deployment path. · Unverified: live hosted connectivity for
   `/api/preference/*` on Railway, since the current hosted UI may still be
   static-only.
+- **2026-06-28 — Codex** · Extended the **Preference Loop** into a richer
+  feedback collector. Users can now submit three kinds of signals: (1) pick the
+  better answer, (2) rank A vs B explicitly, or (3) score both answers
+  absolutely. Backend now normalizes each event into a loop-ready training
+  object (`/api/preference/loop-ready`) with confidence weighting so later
+  self-improvement loops can consume the same user data as anchored preference
+  supervision. Added focused API tests for the new score path and refreshed the
+  UI to show the latest normalized event and how the recursive learner can use
+  it. · Next: connect these normalized feedback events to an actual loop runner
+  or export path for V2/V4-style iterative updates. · Unverified: how well the
+  current lightweight hypothesis learner scales beyond the demo session and
+  whether hosted backend deployment will preserve the in-memory session UX.
   Unverified: final Google Cloud tuning request format, tuned-model quality, and
   the right train/val/test split sizes for the first paid run.
 - **2026-06-28 — Codex** · Connected the new synthetic Judy benchmark to the

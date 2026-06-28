@@ -13,7 +13,7 @@ import PreferenceLoop from "./components/PreferenceLoop";
 import VariantDashboard from "./components/VariantDashboard";
 import TuningTrack from "./components/TuningTrack";
 import { Badge } from "./components/ui";
-import type { ExperimentData, SftEvalData } from "./types";
+import type { ExperimentData, SftEvalData, SftEvalRun } from "./types";
 
 const TABS = [
   { id: "home", label: "Overview", icon: Home },
@@ -28,7 +28,7 @@ type TabId = (typeof TABS)[number]["id"];
 export default function App() {
   const [tab, setTab] = useState<TabId>("home");
   const [experiments, setExperiments] = useState<ExperimentData | null>(null);
-  const [sft, setSft] = useState<SftEvalData | null>(null);
+  const [sftRuns, setSftRuns] = useState<SftEvalRun[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -36,23 +36,29 @@ export default function App() {
 
     async function load() {
       try {
-        const [experimentsResponse, sftResponse] = await Promise.all([
+        const [experimentsResponse, sft20Response, sft40Response] = await Promise.all([
           fetch("/experiments.json"),
           fetch("/sft/judy_sft_v20_eval.json"),
+          fetch("/sft/judy_sft_v40_eval.json"),
         ]);
 
-        if (!experimentsResponse.ok || !sftResponse.ok) {
+        if (!experimentsResponse.ok || !sft20Response.ok || !sft40Response.ok) {
           throw new Error("Failed to load UI experiment artifacts.");
         }
 
-        const [experimentsJson, sftJson] = await Promise.all([
+        const [experimentsJson, sft20Json, sft40Json] = await Promise.all([
           experimentsResponse.json() as Promise<ExperimentData>,
-          sftResponse.json() as Promise<SftEvalData>,
+          sft20Response.json() as Promise<SftEvalData>,
+          sft40Response.json() as Promise<SftEvalData>,
         ]);
 
         if (!cancelled) {
           setExperiments(experimentsJson);
-          setSft(sftJson);
+          setSftRuns([
+            { sampleSize: 20, label: "SFT-20", status: "completed", eval: sft20Json },
+            { sampleSize: 40, label: "SFT-40", status: "completed", eval: sft40Json },
+            { sampleSize: 60, label: "SFT-60", status: "pending" },
+          ]);
         }
       } catch (loadError) {
         if (!cancelled) {
@@ -68,7 +74,7 @@ export default function App() {
     };
   }, []);
 
-  const ready = experiments && sft;
+  const ready = experiments && sftRuns;
 
   return (
     <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-6">
@@ -118,7 +124,7 @@ export default function App() {
             {tab === "home" && (
               <LandingPage
                 experiments={experiments}
-                sft={sft}
+                sftRuns={sftRuns}
                 onOpenVariants={() => setTab("variants")}
                 onOpenCurve={() => setTab("curve")}
                 onOpenTuning={() => setTab("tuning")}
@@ -126,7 +132,7 @@ export default function App() {
             )}
             {tab === "variants" && <VariantDashboard experiments={experiments} />}
             {tab === "curve" && <LearningCurve />}
-            {tab === "tuning" && <TuningTrack sft={sft} />}
+            {tab === "tuning" && <TuningTrack sftRuns={sftRuns} />}
             {tab === "preference" && <PreferenceLoop />}
           </>
         )}

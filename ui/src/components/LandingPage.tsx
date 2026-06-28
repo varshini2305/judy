@@ -6,12 +6,12 @@ import {
   Sparkles,
   Target,
 } from "lucide-react";
-import type { ExperimentData, SftEvalData } from "../types";
+import type { ExperimentData, SftEvalRun } from "../types";
 import { Badge } from "./ui";
 
 type Props = {
   experiments: ExperimentData;
-  sft: SftEvalData;
+  sftRuns: SftEvalRun[];
   onOpenVariants: () => void;
   onOpenCurve: () => void;
   onOpenTuning: () => void;
@@ -19,11 +19,12 @@ type Props = {
 
 export default function LandingPage({
   experiments,
-  sft,
+  sftRuns,
   onOpenVariants,
   onOpenCurve,
   onOpenTuning,
 }: Props) {
+  const firstSft = sftRuns.find((run) => run.sampleSize === 20)?.eval ?? sftRuns[0]?.eval;
   const baseline = experiments.variants.find((variant) => variant.id === "V0") ?? experiments.variants[0];
   const bestFinal = experiments.variants.reduce((best, variant) =>
     variant.agreement > best.agreement ? variant : best,
@@ -34,6 +35,37 @@ export default function LandingPage({
   const bestConsistency = experiments.variants.reduce((best, variant) =>
     variant.pos_consistency > best.pos_consistency ? variant : best,
   experiments.variants[0]);
+  const valueProps = [
+    {
+      title: "Evaluate answers more reliably",
+      body: "Use a judge with an explicit rubric and bias checks instead of relying on a vague single-prompt verdict.",
+    },
+    {
+      title: "Compare improvement methods",
+      body: "See which changes help most: better policy design, self-critique, teacher guidance, or weight updates.",
+    },
+    {
+      title: "Inspect real experimental evidence",
+      body: "Every page is tied to benchmark artifacts, held-out tests, and variant-by-variant comparisons rather than demo-only claims.",
+    },
+  ];
+  const appPath = [
+    {
+      step: "Start here",
+      title: "Understand the system",
+      body: "The overview explains what Judy is for, what has been tested, and what the current best results actually mean.",
+    },
+    {
+      step: "Then open Variants",
+      title: "Read the method story",
+      body: "The variants page shows what changes from V0 to V5, what each variant learns from, and how much lift each one adds.",
+    },
+    {
+      step: "Then inspect learning and tuning",
+      title: "Check how improvement happens",
+      body: "The learning-curve and tuning pages separate context-learning from weight updates so gains and regressions stay interpretable.",
+    },
+  ];
 
   return (
     <div className="flex flex-col gap-8">
@@ -49,10 +81,12 @@ export default function LandingPage({
           <div className="max-w-5xl">
             <h1 className="max-w-4xl text-4xl font-semibold tracking-tight text-fog-100 md:text-5xl">
               <span className="font-bold italic text-fog-100">Judy</span>
-              <span className="block text-fog-300">Self-learning system of Judge and Juries.</span>
+              <span className="block whitespace-nowrap text-3xl text-fog-300 md:text-4xl">
+                Self-learning system of Judge and Juries.
+              </span>
             </h1>
             <p className="mt-4 max-w-4xl text-base leading-7 text-fog-300 md:text-lg">
-              Judy treats evaluation as a system, not a single prompt. The judge defines the rubric and decision process. Jurors contribute independent perspectives. The goal is a clearer, more reliable evaluator that can be tested, improved, and eventually deliberated rather than trusted blindly.
+              Judy treats evaluation as a system, not a single prompt. It combines a judge, optional jurors, and multiple improvement tracks so evaluation can be benchmarked, compared, and improved rather than trusted blindly.
             </p>
           </div>
 
@@ -72,18 +106,9 @@ export default function LandingPage({
           </div>
 
           <div className="grid gap-3 md:grid-cols-3">
-            <QuickPoint
-              title="Vision"
-              body="Move from a static LLM judge to a learning evaluator that can revise its policy, compare methods, and eventually combine judge and jury signals."
-            />
-            <QuickPoint
-              title="What is real here"
-              body="This UI now shows artifact-backed results for V0, V1, V2, and V5 on LLMBar-Adversarial: a 100-item held-out test set with order-swap enabled, plus the first completed SFT evaluation."
-            />
-            <QuickPoint
-              title="Why it matters"
-              body="Many judges look good on easy averages and fail on adversarial or tightly constrained cases. Judy focuses on those failure modes directly."
-            />
+            {valueProps.map((item) => (
+              <QuickPoint key={item.title} title={item.title} body={item.body} />
+            ))}
           </div>
 
           <div className="flex flex-wrap gap-3">
@@ -104,21 +129,12 @@ export default function LandingPage({
         <div className="panel panel-pad">
           <div className="mb-5 flex items-center gap-2">
             <Compass size={16} className="text-accent" />
-            <h2 className="text-lg font-semibold text-fog-100">How Judy works</h2>
+            <h2 className="text-lg font-semibold text-fog-100">How to read this app</h2>
           </div>
           <div className="grid gap-4">
-            <NarrativeBlock
-              title="1. Start with a judge"
-              body="Gemini 3.5 Flash is the shared judge across the main benchmark variants. That keeps the model fixed so differences come from the method, not from swapping models."
-            />
-            <NarrativeBlock
-              title="2. Change the evaluation method"
-              body="V1 improves the judging policy by hand. V2 learns from self-critique on disjoint dev data. V5 adds a cross-family GPT teacher that writes better lessons when the judge gets an item wrong."
-            />
-            <NarrativeBlock
-              title="3. Measure what changed"
-              body="Each variant is tested on the same adversarial benchmark with answer-order swaps, replayable run artifacts, and comparable metrics. That makes the improvements inspectable instead of anecdotal."
-            />
+            {appPath.map((item) => (
+              <NarrativeBlock key={item.title} title={item.step} heading={item.title} body={item.body} />
+            ))}
           </div>
         </div>
 
@@ -129,16 +145,16 @@ export default function LandingPage({
           </div>
           <div className="space-y-4">
             <MiniBlock
-              title="Worked"
-              body="A better starting policy helped immediately. Continual learning improved robustness. Cross-family teaching produced the strongest peak result."
+              title="What already works"
+              body="A stronger rubric improved the judge immediately. Continual self-critique improved robustness. Cross-family teaching produced the strongest peak result so far."
             />
             <MiniBlock
-              title="Limitations"
-              body="Hand-written rubrics do not generalize everywhere. More learning can drift if it is not stopped well. The first 20-sample SFT run did not beat the untuned judge."
+              title="What is still weak"
+              body="Hand-written policies do not generalize everywhere. More learning can drift if it is not stopped well. The first 20-sample SFT run did not beat the untuned judge."
             />
             <MiniBlock
-              title="Next"
-              body={`The next step is to validate whether larger tuned checkpoints, stronger stopping rules, or more diverse jurors can improve beyond the current ${((bestPeak.peak ?? bestPeak.agreement) * 100).toFixed(1)}% peak.`}
+              title="What comes next"
+              body={`The next test is whether larger tuned checkpoints, stronger stopping rules, or more diverse jurors can improve beyond the current ${((bestPeak.peak ?? bestPeak.agreement) * 100).toFixed(1)}% peak.`}
             />
           </div>
         </div>
@@ -148,27 +164,32 @@ export default function LandingPage({
         <div className="panel panel-pad">
           <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-fog-100">
             <Database size={16} className="text-accent" />
-            <span>Model and benchmark setup</span>
+            <span>Experiment frame</span>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Badge tone="neutral">{experiments.judge_model}</Badge>
-            <Badge tone="neutral">GPT teacher in V5: gpt-5.4-nano</Badge>
-            <Badge tone="neutral">{experiments.benchmark}</Badge>
-            <Badge tone="neutral">SFT eval: synthetic objective test set</Badge>
+          <div className="grid gap-3 md:grid-cols-2">
+            <SetupBox label="Shared judge" value={experiments.judge_model} />
+            <SetupBox label="Main benchmark" value={experiments.benchmark} />
+            <SetupBox label="Teacher in V5" value="gpt-5.4-nano" />
+            <SetupBox label="Weight-update eval" value="synthetic held-out objective test set" />
           </div>
-          <p className="mt-4 text-sm leading-6 text-fog-300">
-            The main comparison is grounded in one shared adversarial benchmark so every variant is directly comparable. The tuning page is separate because it changes model weights and is evaluated on a different held-out synthetic objective test set.
-          </p>
         </div>
 
         <div className="panel panel-pad">
-          <div className="mb-3 text-lg font-semibold text-fog-100">Why this is more than a prompt demo</div>
+          <div className="mb-3 text-lg font-semibold text-fog-100">Core takeaway</div>
           <p className="text-sm leading-6 text-fog-300">
-            Judy is trying multiple improvement paths under one evaluation frame: policy design, self-critique, teacher-guided learning, and supervised tuning. The important part is not claiming that every method works. It is making the gains, regressions, and tradeoffs visible enough to guide the next iteration.
+            Judy is useful because it makes improvement methods legible. Policy design, self-critique, teacher-guided learning, and supervised tuning are all tested under a visible evaluation frame, so users can see what helped, what regressed, and what to try next.
           </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Badge tone="neutral">SFT-20: {(sft.variants[0].overall.agreement * 100).toFixed(1)}% → {(sft.variants[1].overall.agreement * 100).toFixed(1)}%</Badge>
-            <Badge tone="neutral">V5 peak: {((bestPeak.peak ?? bestPeak.agreement) * 100).toFixed(1)}%</Badge>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <CompactResult
+              label="Best context-learning result"
+              value={`${((bestPeak.peak ?? bestPeak.agreement) * 100).toFixed(1)}% peak`}
+              detail="teacher-driven learning"
+            />
+            <CompactResult
+              label="First weight-update result"
+              value={firstSft ? `${(firstSft.variants[0].overall.agreement * 100).toFixed(1)}% → ${(firstSft.variants[1].overall.agreement * 100).toFixed(1)}%` : "pending"}
+              detail="20-sample SFT"
+            />
           </div>
         </div>
       </section>
@@ -185,10 +206,11 @@ function QuickPoint({ title, body }: { title: string; body: string }) {
   );
 }
 
-function NarrativeBlock({ title, body }: { title: string; body: string }) {
+function NarrativeBlock({ title, heading, body }: { title: string; heading: string; body: string }) {
   return (
     <div className="rounded-2xl border border-ink-600/70 bg-ink-900/35 p-4">
       <div className="mb-2 text-[11px] uppercase tracking-[0.18em] text-fog-500">{title}</div>
+      <div className="mb-2 text-sm font-semibold text-fog-100">{heading}</div>
       <p className="text-sm leading-6 text-fog-300">{body}</p>
     </div>
   );
@@ -208,6 +230,25 @@ function Stat({ label, value, detail }: { label: string; value: string; detail: 
     <div className="rounded-2xl border border-ink-600/70 bg-ink-900/40 p-4">
       <div className="text-[11px] uppercase tracking-[0.18em] text-fog-500">{label}</div>
       <div className="mt-2 text-2xl font-semibold text-fog-100">{value}</div>
+      <div className="mt-1 text-sm text-fog-400">{detail}</div>
+    </div>
+  );
+}
+
+function SetupBox({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-ink-600/70 bg-ink-900/35 p-4">
+      <div className="text-[11px] uppercase tracking-[0.18em] text-fog-500">{label}</div>
+      <div className="mt-2 text-sm leading-6 text-fog-200">{value}</div>
+    </div>
+  );
+}
+
+function CompactResult({ label, value, detail }: { label: string; value: string; detail: string }) {
+  return (
+    <div className="rounded-2xl border border-ink-600/70 bg-ink-900/35 p-4">
+      <div className="text-[11px] uppercase tracking-[0.18em] text-fog-500">{label}</div>
+      <div className="mt-2 text-lg font-semibold text-fog-100">{value}</div>
       <div className="mt-1 text-sm text-fog-400">{detail}</div>
     </div>
   );

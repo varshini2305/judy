@@ -1,0 +1,165 @@
+{
+  "dataset": "judy/data/datasets/judy_benchmark_objective_test_100_full.jsonl",
+  "policy": "skill",
+  "variants": [
+    {
+      "label": "base",
+      "model": "gemini-3.5-flash",
+      "dataset": "judy/data/datasets/judy_benchmark_objective_test_100_full.jsonl",
+      "n_items": 100,
+      "overall": {
+        "n_items": 100,
+        "n_records": 200,
+        "n_errors": 15,
+        "agreement": 0.925,
+        "score_spread": 1.2645058323313498,
+        "position_consistency": 0.99,
+        "position_consistent_agreement": 0.92
+      },
+      "per_subset": {
+        "constrained_format": {
+          "n_items": 42,
+          "n_records": 84,
+          "n_errors": 2,
+          "agreement": 0.9761904761904762,
+          "score_spread": 1.1987214466155027,
+          "position_consistency": 1.0,
+          "position_consistent_agreement": 0.9761904761904762
+        },
+        "factual_qa": {
+          "n_items": 17,
+          "n_records": 34,
+          "n_errors": 4,
+          "agreement": 0.8823529411764706,
+          "score_spread": 1.166131035388177,
+          "position_consistency": 1.0,
+          "position_consistent_agreement": 0.8823529411764706
+        },
+        "numeric_constraint": {
+          "n_items": 26,
+          "n_records": 52,
+          "n_errors": 9,
+          "agreement": 0.8269230769230769,
+          "score_spread": 1.599163057729605,
+          "position_consistency": 0.9615384615384616,
+          "position_consistent_agreement": 0.8076923076923077
+        },
+        "persona_support": {
+          "n_items": 4,
+          "n_records": 8,
+          "n_errors": 0,
+          "agreement": 1.0,
+          "score_spread": 0.0,
+          "position_consistency": 1.0,
+          "position_consistent_agreement": 1.0
+        },
+        "safety_boundary": {
+          "n_items": 10,
+          "n_records": 20,
+          "n_errors": 0,
+          "agreement": 1.0,
+          "score_spread": 0.0,
+          "position_consistency": 1.0,
+          "position_consistent_agreement": 1.0
+        },
+        "tone_register": {
+          "n_items": 1,
+          "n_records": 2,
+          "n_errors": 0,
+          "agreement": 1.0,
+          "score_spread": 0.5,
+          "position_consistency": 1.0,
+          "position_consistent_agreement": 1.0
+        }
+      },
+      "usage": {
+        "calls": 200,
+        "input_tokens": 123578,
+        "output_tokens": 26693,
+        "cost_usd": 0.4256
+      }
+    },
+    {
+      "label": "tuned",
+      "model": "projects/209722657949/locations/us/endpoints/3138164515347103744",
+      "dataset": "judy/data/datasets/judy_benchmark_objective_test_100_full.jsonl",
+      "n_items": 100,
+      "overall": {
+        "n_items": 100,
+        "n_records": 200,
+        "n_errors": 18,
+        "agreement": 0.91,
+        "score_spread": 0.9087216295433933,
+        "position_consistency": 0.98,
+        "position_consistent_agreement": 0.9
+      },
+      "per_subset": {
+        "constrained_format": {
+          "n_items": 42,
+          "n_records": 84,
+          "n_errors": 2,
+          "agreement": 0.9761904761904762,
+          "score_spread": 0.8498365855987974,
+          "position_consistency": 1.0,
+          "position_consistent_agreement": 0.9761904761904762
+        },
+        "factual_qa": {
+          "n_items": 17,
+          "n_records": 34,
+          "n_errors": 4,
+          "agreement": 0.8823529411764706,
+          "score_spread": 0.903664205631601,
+          "position_consistency": 1.0,
+          "position_consistent_agreement": 0.8823529411764706
+        },
+        "numeric_constraint": {
+          "n_items": 26,
+          "n_records": 52,
+          "n_errors": 12,
+          "agreement": 0.7692307692307693,
+          "score_spread": 1.1336371271684225,
+          "position_consistency": 0.9230769230769231,
+          "position_consistent_agreement": 0.7307692307692307
+        },
+        "persona_support": {
+          "n_items": 4,
+          "n_records": 8,
+          "n_errors": 0,
+          "agreement": 1.0,
+          "score_spread": 0.4330127018922193,
+          "position_consistency": 1.0,
+          "position_consistent_agreement": 1.0
+        },
+        "safety_boundary": {
+          "n_items": 10,
+          "n_records": 20,
+          "n_errors": 0,
+          "agreement": 1.0,
+          "score_spread": 0.39999999999999997,
+          "position_consistency": 1.0,
+          "position_consistent_agreement": 1.0
+        },
+        "tone_register": {
+          "n_items": 1,
+          "n_records": 2,
+          "n_errors": 0,
+          "agreement": 1.0,
+          "score_spread": 0.0,
+          "position_consistency": 1.0,
+          "position_consistent_agreement": 1.0
+        }
+      },
+      "usage": {
+        "calls": 200,
+        "input_tokens": 123178,
+        "output_tokens": 25357,
+        "cost_usd": 0.413
+      }
+    }
+  ],
+  "delta": {
+    "agreement_pp": -1.5,
+    "position_consistency_pp": -1.0,
+    "position_consistent_agreement_pp": -2.0
+  }
+}

@@ -43,7 +43,9 @@ Recharts+diff-viewer. The current shipped views are:
 - variant comparison dashboard backed by `ui/public/experiments.json`
 - continual-learning curve view backed by `ui/public/curves/*.json`
 - weight-update / SFT dashboard backed by `ui/public/sft/judy_sft_v20_eval.json`
-- preference-loop tab backed by FastAPI `/api/preference/*` session endpoints
+- preference-loop tab backed by FastAPI `/api/preference/*` session endpoints,
+  now supporting best-response picks, explicit pairwise rankings, and absolute
+  per-answer scores with normalized loop-ready event export
 - `Try Judy` pairwise/pointwise demo tab, still a local stub until the live API lands
 
 The old mock run fixture (`src/mock/run.ts`) remains in the tree for the

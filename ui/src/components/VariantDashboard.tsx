@@ -38,6 +38,7 @@ export default function VariantDashboard({ experiments }: { experiments: Experim
       agreementDelta: +(((variant.agreement - baseline.agreement) * 100).toFixed(1)),
       consistencyDelta: +(((variant.pos_consistency - baseline.pos_consistency) * 100).toFixed(1)),
     }));
+  const storyOrder = ["V0", "V1", "V2", "V4", "V5"] as const;
 
   const cheatSheet = [
     {
@@ -86,7 +87,7 @@ export default function VariantDashboard({ experiments }: { experiments: Experim
     <div className="flex flex-col gap-6">
       <SectionTitle
         title="Variant Comparison"
-        subtitle="Real artifact-backed results on the shared LLMBar-Adversarial benchmark. Every variant below uses the same Gemini judge unless noted."
+        subtitle="Read this page as a method story: start from the baseline judge, then see what each improvement layer adds, and finally compare all variants on one shared benchmark."
       />
 
       <div className="grid gap-4 lg:grid-cols-4">
@@ -114,10 +115,50 @@ export default function VariantDashboard({ experiments }: { experiments: Experim
         />
       </div>
 
+      <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="panel panel-pad">
+          <div className="mb-4 flex items-center gap-2">
+            <Database size={16} className="text-accent" />
+            <h3 className="text-base font-semibold text-fog-100">Shared experiment frame</h3>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <SetupRow label="Benchmark" value={experiments.benchmark} />
+            <SetupRow label="Judge model" value={experiments.judge_model} />
+            <SetupRow label="Learning set" value={experiments.train_set} />
+            <SetupRow label="Held-out test" value={experiments.test_set} />
+          </div>
+          <p className="mt-4 text-sm leading-6 text-fog-300">
+            Most variants stay comparable because they keep the same judge family and the same held-out adversarial test set. The main variable is the method used to improve the evaluator.
+          </p>
+        </div>
+
+        <div className="panel panel-pad">
+          <div className="mb-4 flex items-center gap-2">
+            <Gauge size={16} className="text-accent" />
+            <h3 className="text-base font-semibold text-fog-100">How the variants build on each other</h3>
+          </div>
+          <div className="grid gap-3">
+            {storyOrder.map((id) => {
+              const variant = cheatSheet.find((item) => item.id === id);
+              if (!variant) return null;
+              return (
+                <StoryStep
+                  key={variant.id}
+                  id={variant.id}
+                  title={variant.title}
+                  method={variant.method}
+                  result={variant.result}
+                />
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
       <div className="panel panel-pad">
         <div className="mb-4 flex items-center gap-2">
           <Sparkles size={16} className="text-accent" />
-          <h3 className="text-base font-semibold text-fog-100">Variant cheat sheet</h3>
+          <h3 className="text-base font-semibold text-fog-100">Variant reference</h3>
         </div>
         <div className="grid gap-3 lg:grid-cols-2">
           {cheatSheet.map((variant) => (
@@ -171,7 +212,7 @@ export default function VariantDashboard({ experiments }: { experiments: Experim
             </ResponsiveContainer>
           </div>
           <p className="mt-3 text-xs leading-5 text-fog-500">
-            Colored bars show agreement with human labels. Gray bars show order robustness, which is where V2 stands out even more than on raw accuracy.
+            Colored bars show agreement with human labels. Gray bars show order robustness. This is the quickest visual check for whether a variant improved both accuracy and stability.
           </p>
         </div>
 
@@ -196,69 +237,36 @@ export default function VariantDashboard({ experiments }: { experiments: Experim
             </ResponsiveContainer>
           </div>
           <p className="mt-3 text-xs leading-5 text-fog-500">
-            This is the direct baseline-vs-variant view: V1 gives the fastest static prompt gain, V2 improves robustness most, and V5 reaches the best peak once early-stopped.
+            This is the baseline-vs-variant view in percentage points. It makes clear which methods provide immediate lift, which improve robustness, and which only help transiently at peak.
           </p>
         </div>
       </div>
-
-      <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-        <div className="panel panel-pad">
-          <div className="mb-4 flex items-center gap-2">
-            <Database size={16} className="text-accent" />
-            <h3 className="text-base font-semibold text-fog-100">Experimental setup</h3>
-          </div>
-          <div className="space-y-4 text-sm leading-6 text-fog-300">
-            <div>
-              <div className="label">Test set</div>
-              <p className="mt-1">{experiments.test_set}</p>
-            </div>
-            <div>
-              <div className="label">Learning set</div>
-              <p className="mt-1">{experiments.train_set}</p>
-            </div>
-            <div>
-              <div className="label">What "learning" means here</div>
-              <p className="mt-1">{experiments.training_means}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="panel panel-pad">
-          <div className="mb-4 flex items-center gap-2">
-            <Sparkles size={16} className="text-accent" />
-            <h3 className="text-base font-semibold text-fog-100">Per-variant setup</h3>
-          </div>
-          <div className="grid gap-3">
-            {experiments.variants.map((variant) => (
-              <article key={variant.id} className="rounded-xl border border-ink-600/70 bg-ink-900/35 p-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge tone="accent">{variant.id}</Badge>
-                  <span className="text-sm font-semibold text-fog-100">{variant.label}</span>
-                  {variant.teacher_model && <Badge tone="neutral">teacher: {variant.teacher_model}</Badge>}
-                  {variant.learns ? <Badge tone="good">learns</Badge> : <Badge tone="neutral">static</Badge>}
-                </div>
-                <p className="mt-3 text-sm leading-6 text-fog-300">{variant.method}</p>
-                <div className="mt-3 grid gap-2 md:grid-cols-2">
-                  <SetupRow label="Judge model" value={experiments.judge_model} />
-                  <SetupRow label="Teacher" value={variant.teacher_model ?? "none"} />
-                  <SetupRow label="Train data" value={variant.trains_on} />
-                  <SetupRow label="Eval set" value="LLMBar-Adversarial test 100" />
-                  <SetupRow label="Learning mode" value={variant.learns ? "context updates" : "static policy"} />
-                  <SetupRow label="Order swap" value="enabled" />
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                  <span className="chip">agreement {pct(variant.agreement, 1)}</span>
-                  <span className="chip">pos-consistency {pct(variant.pos_consistency, 1)}</span>
-                  {variant.peak && <span className="chip">peak {pct(variant.peak, 1)}</span>}
-                  {variant.cost_usd !== null && <span className="chip">~${variant.cost_usd.toFixed(2)}</span>}
-                </div>
-                <p className="mt-3 text-xs leading-5 text-fog-500">{variant.note}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </div>
     </div>
+  );
+}
+
+function StoryStep({
+  id,
+  title,
+  method,
+  result,
+}: {
+  id: string;
+  title: string;
+  method: string;
+  result: string;
+}) {
+  return (
+    <article className="rounded-xl border border-ink-600/70 bg-ink-900/35 p-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge tone="accent">{id}</Badge>
+        <span className="text-sm font-semibold text-fog-100">{title}</span>
+      </div>
+      <p className="mt-3 text-sm leading-6 text-fog-300">{method}</p>
+      <div className="mt-3 rounded-lg border border-ink-600/60 bg-ink-800/45 px-3 py-2 text-sm text-fog-200">
+        {result}
+      </div>
+    </article>
   );
 }
 

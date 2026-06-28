@@ -118,3 +118,10 @@ export interface SftEvalData {
     position_consistent_agreement_pp: number;
   };
 }
+
+export interface SftEvalRun {
+  sampleSize: number;
+  label: string;
+  status: "completed" | "pending";
+  eval?: SftEvalData;
+}
