@@ -36,10 +36,15 @@ Hackathon theme: *The Self-Improvement Stack* (secondary: *Continual Learning*).
 
 ## Model access & goals
 
-- **Provider:** Google **Gemini** (`gemini-3.5-flash`) for judge, reflection,
-  and data synthesis. No Pro. OpenAI credits available but not used in iter 1.
-- **Goal:** showcase Gemini 3.5 effectively (and set up iter-2 Antigravity).
-  _(Confirm exact model id + `google-genai` version at scaffold time.)_
+- **Provider (iter 1):** Google **Gemini** `gemini-3.5-flash` for judge,
+  reflection, and data synthesis. **VALIDATED** via one live call (google-genai
+  2.10.0). No Pro.
+- **Second model:** **GPT 5.5 nano** (`gpt-5.5-nano`) available "wherever
+  applicable" — natural diverse/jury model for later; OpenAI credits on hand.
+- **Database / search:** **MongoDB** (Atlas) for any DB or vector/text search.
+- **Cost discipline:** credits must last through iteration + demo. Keep test
+  runs TINY, reuse generated datasets, never re-run the full pipeline just to
+  check wiring. See [[judy-tech-stack-and-cost]].
 - **No Anthropic in the product** — Claude is only the coding agent.
 
 ## Self-learning approach (iteration 1)
@@ -100,22 +105,30 @@ Tailwind+shadcn+Recharts) + `scripts/smoke_antigravity.py` + `docs/ROADMAP.md`.
   task types. (2026-06-27)
 - **D5 — Ground truth by construction** via quality tiers A>B>C>D. (2026-06-27)
 
-## Open questions / to confirm before/while building
+## Open questions / to confirm
 
-- **Green light to scaffold?** (git init + repo structure + seed files.)
-- **`GEMINI_API_KEY`** — needed in `.env` to run anything live.
-- Exact `gemini-3.5-flash` model id + `google-genai` version (brief pins
-  `>=2.3.0`) — verify against the live SDK at wire-time.
-- **Design skill:** brief §7 says consult a `frontend-design` skill; the
-  available design skills here are gstack's (`design-consultation`,
-  `design-html`, `design-shotgun`). Will apply strong design judgment + those.
-- Antigravity smoke test (brief §9) uses a bleeding-edge preview agent id; it's
-  a standalone de-risk, expected to possibly FAIL gracefully.
+- **Push timing:** origin added (`git@github.com:varshini2305/judy.git`); push
+  held until initial setup done + user confirms. 6 commits waiting.
+- **Cost-safe dataset test:** before running the full generator (~42 synth
+  calls), confirm a tiny smoke (2 instances) is the right validation step.
+- **Design skill:** brief §7 says `frontend-design`; available are gstack's
+  (`design-consultation`, `design-html`, `design-shotgun`) + design judgment.
+- Antigravity smoke test (brief §9): bleeding-edge preview id; may FAIL
+  gracefully. GPT 5.5 nano exact id to confirm when first used.
 
 ## Current state
 
-- Design/spec phase complete (iteration-1 brief locked). **No code yet.**
-- Context system (`PROJECT_CONTEXT.md`, `CLAUDE.md`, `AGENTS.md`) in place.
+- **Headless backend COMPLETE + offline-tested** (6 tests pass, zero API
+  credits): config, schema, Gemini client, judge, skill manager, metrics, eval
+  harness, dataset loader+guard, data generator, reflect, loop+logging.
+- Loop is injectable (stub client) for free testing. Gemini path validated with
+  one live call.
+- **Not yet built:** `api/server.py` (FastAPI+SSE), `ui/` (React dashboard),
+  `scripts/smoke_antigravity.py`. **Not yet done:** a real end-to-end run on
+  generated data (costs credits — pending decision).
+- Env: `.venv` via **uv**; deps + pytest installed. **9 local commits, none
+  pushed.**
+- Context system + `docs/IMPLEMENTATION.md` + statusline + allowlist in place.
 - Sprint clock: 14 hours to demo (started 2026-06-27).
 
 ## Multi-agent workflow
@@ -134,13 +147,15 @@ Work alternates between **Claude Code, Codex, and Antigravity** across sessions.
 
 > One entry per work block: agent · what changed · next step · unverified.
 
-- **2026-06-27 — Claude** · Set up context system (`PROJECT_CONTEXT.md`,
-  `CLAUDE.md`, `AGENTS.md`). Then read `Judy_Iteration1_Brief.md` and folded the
-  locked iteration-1 plan into this doc (domain, model, self-learning approach,
-  architecture, metrics, decisions D1–D5). No code yet. · Next: get green light
-  + `GEMINI_API_KEY`, then `git init` and scaffold repo per brief §3. ·
-  Unverified: git not initialized; exact Gemini model id/SDK version; design
-  skill name mismatch.
+- **2026-06-27 — Claude** · Set up context system + folded iteration-1 brief
+  into this doc (decisions D1–D5). · Next: scaffold. · Unverified: git/model id.
+- **2026-06-27 — Claude** · Built headless core + the self-improvement loop
+  (reflect anchored/unanchored, run+logging). Added `docs/IMPLEMENTATION.md`.
+  Wrote offline test suite (stub client, 0 credits) — full loop + metrics +
+  JSON + skill mutation; caught/fixed a dedup bug. 9 commits, none pushed. ·
+  Next: decide on a cost-bounded REAL end-to-end run to prove anchored improves,
+  then build API + UI. · Unverified: real-data behavior (anchored lift),
+  Antigravity smoke test.
 
 ---
 
