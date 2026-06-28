@@ -49,6 +49,8 @@ metrics). Config and toggles live in `judy/config.py`.
 cd ui && npm install && npm run dev     # Vite + React dashboard
 ```
 
+Live app: [judy-production-8e7e.up.railway.app](https://judy-production-8e7e.up.railway.app/)
+
 The UI is in active development. The current direction is a clearer landing
 page and dashboard that explain the vision, the current baseline, what worked,
 what did not, and where the framework is pushing frontier LLM-as-a-judge and
