@@ -133,6 +133,14 @@ Tailwind+shadcn+Recharts) + `scripts/smoke_antigravity.py` + `docs/ROADMAP.md`.
 - Benchmarking work now includes a RewardBench baseline, judge-variant
   comparison tooling, and an additional JudgeBench sample fetch helper for a
   harder external baseline track.
+- Synthetic benchmark generation is live with OpenAI-backed prompt templates,
+  a browser review UI, and a first 100-case benchmark on disk
+  (`judy_benchmark_full.jsonl` / `judy_benchmark_review.jsonl`).
+- The weight-update track now has a usable **local SFT lane**: objective
+  synthetic cases can be exported into swap-balanced `train/val/test` JSONL for
+  Gemini `3.5 Flash`, cloud upload/request stubs can be prepared, and a
+  base-vs-tuned evaluation script can score a tuned judge on held-out synthetic
+  objective pairs.
 - Loop is injectable (stub client) for free testing. Gemini path has been
   validated with a live call.
 - **Still missing / unverified:** `judy/api/server.py` (FastAPI+SSE), pointwise
@@ -168,6 +176,19 @@ Work alternates between **Claude Code, Codex, and Antigravity** across sessions.
   compare tuned judges against the current policy-rewrite baseline. ·
   Unverified: final Google Cloud tuning request format, tuned-model quality, and
   the right train/val/test split sizes for the first paid run.
+- **2026-06-28 — Codex** · Connected the new synthetic Judy benchmark to the
+  weight-update lane: added synthetic-objective SFT export helpers, a dedicated
+  `scripts/export_judy_benchmark_sft.py` pipeline, `scripts/run_gemini_sft.py`
+  cloud-prep assets, `judy/eval/synthetic.py`, and
+  `scripts/eval_tuned_judge.py` for base-vs-tuned comparisons on held-out
+  synthetic objective pairs. Verified focused tests pass and the current
+  100-case benchmark exports to an SFT bundle with 56/7/7 objective cases
+  (112/14/14 swap-balanced rows). · Next: generate a second disjoint 100-case
+  synthetic benchmark for held-out testing, then run the first real Gemini SFT
+  job and compare vanilla vs tuned judge performance on that unseen set. ·
+  Unverified: live Vertex / Agent Platform submission payload, tuned-model
+  resource naming, and whether 100 synthetic training cases are enough to move
+  agreement materially.
 - **2026-06-28 — Codex** · Added synthetic benchmark generation scaffolding with
   a minimal OpenAI Responses client, prompt templates for objective and
   preference pairwise cases, a generator script, a review-row transformer, a

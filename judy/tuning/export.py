@@ -134,6 +134,57 @@ def benchmark_pair_to_sft_rows(
     return rows
 
 
+def synthetic_objective_pair_to_sft_rows(
+    row: dict[str, Any],
+    *,
+    source: str,
+    split: str,
+    include_swap: bool = True,
+) -> list[dict[str, Any]]:
+    """Convert one synthetic objective benchmark row into SFT rows."""
+    better = str(row["objectively_better"]).strip().upper()
+    answer_a = str(row["answer_a"])
+    answer_b = str(row["answer_b"])
+    winner = better if better in {"A", "B"} else "A"
+    base = {
+        "id": str(row["id"]),
+        "source": source,
+        "split": split,
+        "task_type": str(row["task_type"]),
+        "system_prompt": str(row["system_prompt"]),
+        "question": str(row["question"]),
+        "difficulty": str(row.get("difficulty", "unknown")),
+        "rationale": str(row.get("winner_reason", "")),
+        "failure_axis": str(row.get("failure_axis", "")),
+    }
+    chosen = answer_a if winner == "A" else answer_b
+    rejected = answer_b if winner == "A" else answer_a
+    rows = [
+        {
+            **base,
+            "swap": False,
+            "answer_a": chosen,
+            "answer_b": rejected,
+            "winner": "A",
+            "prompt": build_sft_prompt(base["system_prompt"], base["question"], chosen, rejected),
+            "target": "A",
+        }
+    ]
+    if include_swap:
+        rows.append(
+            {
+                **base,
+                "swap": True,
+                "answer_a": rejected,
+                "answer_b": chosen,
+                "winner": "B",
+                "prompt": build_sft_prompt(base["system_prompt"], base["question"], rejected, chosen),
+                "target": "B",
+            }
+        )
+    return rows
+
+
 def split_list(
     rows: list[dict[str, Any]],
     *,
@@ -154,6 +205,20 @@ def split_list(
     val = items[n_train : n_train + n_val]
     test = items[n_train + n_val :]
     return train, val, test
+
+
+def split_case_rows(
+    rows: list[dict[str, Any]],
+    *,
+    train_frac: float,
+    val_frac: float,
+    seed: int,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    """Shuffle and split source cases before expanding to swap-balanced rows."""
+    train_cases, val_cases, test_cases = split_list(
+        rows, train_frac=train_frac, val_frac=val_frac, seed=seed
+    )
+    return train_cases, val_cases, test_cases
 
 
 def load_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -262,4 +327,3 @@ def _infer_question(answer_a: str, answer_b: str) -> str:
     stem = re.sub(r"\s+explained.*$", "", source.strip(), flags=re.IGNORECASE)
     stem = stem.rstrip(". ")
     return f"Explain {stem.lower()}."
-

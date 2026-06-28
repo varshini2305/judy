@@ -2,12 +2,17 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 from judy.judge.schema import Candidate, Item
+from judy.eval.synthetic import load_synthetic_objective_items
 from judy.tuning.export import (
     benchmark_pair_to_sft_rows,
     generate_preference_rows,
     item_to_sft_rows,
     split_list,
+    synthetic_objective_pair_to_sft_rows,
 )
 
 
@@ -68,3 +73,52 @@ def test_split_list_partitions_all_rows():
     assert {r["id"] for r in train} | {r["id"] for r in val} | {r["id"] for r in test} == {
         str(i) for i in range(10)
     }
+
+
+def test_synthetic_objective_pair_to_sft_rows_uses_hidden_winner():
+    row = {
+        "id": "obj-1",
+        "mode": "objective_pairwise",
+        "task_type": "numeric_constraint",
+        "system_prompt": "Return only the exact answer.",
+        "question": "What is 2+2?",
+        "answer_a": "3",
+        "answer_b": "4",
+        "objectively_better": "B",
+        "winner_reason": "4 is correct.",
+        "failure_axis": "numeric_error",
+    }
+    rows = synthetic_objective_pair_to_sft_rows(
+        row, source="judy_synth_benchmark", split="train", include_swap=True
+    )
+    assert len(rows) == 2
+    assert rows[0]["answer_a"] == "4"
+    assert rows[0]["answer_b"] == "3"
+    assert rows[0]["target"] == "A"
+    assert rows[1]["target"] == "B"
+    assert rows[0]["failure_axis"] == "numeric_error"
+
+
+def test_load_synthetic_objective_items_maps_hidden_label_to_item(tmp_path: Path):
+    path = tmp_path / "synthetic.jsonl"
+    path.write_text(
+        json.dumps(
+            {
+                "id": "obj-1",
+                "mode": "objective_pairwise",
+                "task_type": "constrained_format",
+                "system_prompt": "Follow format.",
+                "question": "Give the answer.",
+                "answer_a": "wrong",
+                "answer_b": "right",
+                "objectively_better": "B",
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    items = load_synthetic_objective_items(path)
+    assert len(items) == 1
+    item = items[0]
+    assert item.correct_side() == "B"
+    assert item.candidates[1].text == "right"

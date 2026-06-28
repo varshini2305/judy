@@ -4,7 +4,7 @@
 > (design/stack reasoning). Kept current as the code evolves. For project *state*
 > see `PROJECT_CONTEXT.md`; for the *spec* see `Judy_Iteration1_Brief.md`.
 
-_Last updated: 2026-06-27_
+_Last updated: 2026-06-28_
 
 ## System in one paragraph
 
@@ -29,8 +29,10 @@ demonstrating that self-improvement needs an external anchor.
 | `judy/data/dataset.py` | Dataset IO + split | JSONL with `split` tag; **held-out guard** asserts disjoint ids + unseen task types |
 | `judy/data/generate.py` | Synthetic data | LLM synthesizes tiered A/B/C/D answers per instance; A-vs-C-weighted pairings |
 | `judy/eval/harness.py` | Run a split | Concurrent `judge_item` over items, both orders if order-swap |
+| `judy/eval/synthetic.py` | Synthetic benchmark eval loader | Maps hidden `objectively_better` labels into `Item`s for base-vs-tuned judge comparisons |
 | `judy/loop/reflect.py` | Error → edits | One LLM call; anchored vs unanchored prompt; enforces task-GENERAL lessons |
 | `judy/loop/run.py` | The loop + logging | baseline + N iters per mode, early stopping, writes `runs/{id}/` |
+| `judy/tuning/export.py` | Tuning dataset transforms | Exports Judy/benchmark/synthetic objective rows into SFT-ready JSONL plus preference rows |
 
 **UI built (mock-driven):** `ui/` — Vite+React+TS+Tailwind+Recharts+diff-viewer,
 4 screens (Control Room, Skill Evolution, Item Inspector, Try Judy w/ pairwise+
@@ -40,10 +42,17 @@ pointwise toggle). Reads `src/mock/run.ts`; shapes mirror the planned API.
 schema, judge fn, tier→label/score ground truth, harness+metrics+reflect paths),
 `judy/api/server.py` (FastAPI + SSE to replace the mock), `scripts/smoke_antigravity.py`.
 
-**Weight-update track (planned, not yet implemented):** see
-`docs/MODEL_TUNING_PLAN.md`. Current plan is supervised fine-tuning on
-`Gemini 3.5 Flash` plus a separate preference-tuning path on `Gemini 2.5 Flash`
-through Google Cloud with JSONL datasets in GCS.
+**Weight-update track (partially implemented):** see
+`docs/MODEL_TUNING_PLAN.md`. Local export scaffolding now exists for:
+- supervised fine-tuning JSONL from Judy / RewardBench / JudgeBench pairs
+- simulated-user preference JSONL for Gemini `2.5 Flash`
+- synthetic Judy benchmark export into an objective-only SFT bundle
+- base-vs-tuned evaluation wiring on held-out synthetic objective cases
+
+Cloud submission is still a thin prep layer rather than a verified end-to-end
+job launcher: `scripts/run_gemini_sft.py` currently writes deterministic GCS
+upload commands plus a request stub, and the exact Vertex / Agent Platform
+submission payload still needs to be checked against live docs before first use.
 
 ## Key design choices (and why)
 
@@ -90,4 +99,7 @@ through Google Cloud with JSONL datasets in GCS.
 uv venv && uv pip install --python .venv/bin/python -r requirements.txt
 .venv/bin/python -m judy.data.generate            # synthesize dataset (LLM calls)
 .venv/bin/python -m judy.loop.run --iters 4       # anchored + unanchored ablation
+PYTHONPATH=. python scripts/export_judy_benchmark_sft.py
+PYTHONPATH=. python scripts/run_gemini_sft.py --dataset-dir ... --bucket-uri gs://... --project-id ...
+PYTHONPATH=. python scripts/eval_tuned_judge.py --dataset ... --tuned-model projects/.../models/...
 ```
