@@ -37,9 +37,16 @@ demonstrating that self-improvement needs an external anchor.
 | `judy/eval/jury.py` | V4 judge-jury (subjective) | B0 single judge vs per-user jurors (`reflect`/`fewshot` modes); reuses harness+metrics+reflect; emits per-user agreement + personalization matrix |
 | `scripts/generate_creative_pref_benchmark.py` | V4 benchmark gen | gpt-5.4-nano creative pairs + per-persona labels (position-randomised) → `creative_pref_benchmark.jsonl` |
 
-**UI built (mock-driven):** `ui/` — Vite+React+TS+Tailwind+Recharts+diff-viewer,
-4 screens (Control Room, Skill Evolution, Item Inspector, Try Judy w/ pairwise+
-pointwise toggle). Reads `src/mock/run.ts`; shapes mirror the planned API.
+**UI built (artifact-backed for results):** `ui/` — Vite+React+TS+Tailwind+
+Recharts+diff-viewer. The current shipped views are:
+- overview/landing page with vision, execution, findings, and next steps
+- variant comparison dashboard backed by `ui/public/experiments.json`
+- continual-learning curve view backed by `ui/public/curves/*.json`
+- weight-update / SFT dashboard backed by `ui/public/sft/judy_sft_v20_eval.json`
+- `Try Judy` pairwise/pointwise demo tab, still a local stub until the live API lands
+
+The old mock run fixture (`src/mock/run.ts`) remains in the tree for the
+interactive demo surface only; the benchmark/result views no longer depend on it.
 
 **Not yet built:** pointwise backend (D6: rubric-decomposed independent eval —
 schema, judge fn, tier→label/score ground truth, harness+metrics+reflect paths),

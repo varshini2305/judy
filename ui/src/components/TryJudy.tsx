@@ -58,7 +58,7 @@ export default function TryJudy() {
     <div className="flex flex-col gap-6">
       <SectionTitle
         title="Try Judy"
-        subtitle="Judge live, with Judy's current policy. Compare two answers, or evaluate one on its own merits."
+        subtitle="Interactive demo surface for the current judgment API shape. The benchmark dashboards in the other tabs are real; this tab is still a local UI stub until the live judging endpoint is wired."
       />
 
       <div className="flex items-center gap-2">

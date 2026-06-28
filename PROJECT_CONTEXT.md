@@ -128,8 +128,11 @@ Tailwind+shadcn+Recharts) + `scripts/smoke_antigravity.py` + `docs/ROADMAP.md`.
 - **Headless backend COMPLETE + offline-tested**: config, schema, Gemini
   client, judge, skill manager, metrics, eval harness, dataset loader+guard,
   data generator, reflect, loop+logging.
-- **UI exists and is mock-driven** in `ui/` with the shell and four screens
-  already implemented; the main missing integration is wiring it to a live API.
+- **UI now reads real artifact-backed results** for the overview/results flow in
+  `ui/`: the landing page, variants dashboard, learning-curve view, and
+  weight-update/tuning view all load bundled experiment JSON (`ui/public/`).
+  The remaining mock/stub surface is the interactive `Try Judy` tab until the
+  live judging API is wired.
 - Benchmarking work now includes a RewardBench baseline, judge-variant
   comparison tooling, and an additional JudgeBench sample fetch helper for a
   harder external baseline track.
@@ -218,6 +221,19 @@ Work alternates between **Claude Code, Codex, and Antigravity** across sessions.
   Tightened the JudgeBench fetch helper to produce a broader sample. · Next:
   confirm the exact Agent Platform JSONL schema before cloud job wrappers, then
   compare tuned judges against the current policy-rewrite baseline. ·
+- **2026-06-28 — Codex** · Reworked the UI so the results story is no longer
+  mock-backed: `ui/src/App.tsx` now fetches real bundled artifacts,
+  `LandingPage.tsx` was rewritten around the actual vision / execution / what's
+  next messaging, `VariantDashboard.tsx` compares V0/V1/V2/V5 graphically vs the
+  shared baseline, `TuningTrack.tsx` surfaces the completed SFT-20 run plus the
+  honest pending status of SFT-40, and `ui/public/sft/judy_sft_v20_eval.json`
+  was added for static hosting. `TryJudy` is still explicitly labeled as a stub
+  until the live API exists. Docs refreshed to reflect the artifact-backed UI. ·
+  Next: deploy this UI revision to Railway, then decide whether to expose V4
+  subjective-track results in the UI as a separate benchmark family or keep the
+  current focus on the shared LLMBar comparison. · Unverified: live Railway
+  rendering after deploy, and whether the user wants the V4 creative/tweet track
+  promoted onto the landing page immediately.
   Unverified: final Google Cloud tuning request format, tuned-model quality, and
   the right train/val/test split sizes for the first paid run.
 - **2026-06-28 — Codex** · Connected the new synthetic Judy benchmark to the

@@ -51,3 +51,70 @@ export interface RunBundle {
   results: Record<Mode, ModeResult>;
   items: ItemRecord[];
 }
+
+export interface ExperimentVariant {
+  id: string;
+  label: string;
+  learns: boolean;
+  teacher_model: string | null;
+  method: string;
+  trains_on: string;
+  agreement: number;
+  pos_consistency: number;
+  cost_usd: number | null;
+  verdict: string;
+  note: string;
+  peak?: number;
+  curve_run?: string | null;
+}
+
+export interface ExperimentFindings {
+  promising: string[];
+  limited: string[];
+}
+
+export interface ExperimentData {
+  benchmark: string;
+  test_set: string;
+  train_set: string;
+  judge_model: string;
+  training_means: string;
+  variants: ExperimentVariant[];
+  findings: ExperimentFindings;
+}
+
+export interface SftEvalSubsetMetrics {
+  n_items: number;
+  n_records: number;
+  n_errors: number;
+  agreement: number;
+  score_spread: number;
+  position_consistency: number;
+  position_consistent_agreement: number;
+}
+
+export interface SftEvalVariant {
+  label: string;
+  model: string;
+  dataset: string;
+  n_items: number;
+  overall: SftEvalSubsetMetrics;
+  per_subset: Record<string, SftEvalSubsetMetrics>;
+  usage: {
+    calls: number;
+    input_tokens: number;
+    output_tokens: number;
+    cost_usd: number;
+  };
+}
+
+export interface SftEvalData {
+  dataset: string;
+  policy: string;
+  variants: SftEvalVariant[];
+  delta: {
+    agreement_pp: number;
+    position_consistency_pp: number;
+    position_consistent_agreement_pp: number;
+  };
+}
