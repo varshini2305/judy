@@ -3,6 +3,10 @@
 .env.*
 !.env.example
 
+# Local machine-specific Claude Code settings (statusline path, allowlist)
+.claude/settings.local.json
+.claude/settings.json
+
 # Python
 __pycache__/
 *.py[cod]
