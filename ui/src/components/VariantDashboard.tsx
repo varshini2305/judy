@@ -39,6 +39,49 @@ export default function VariantDashboard({ experiments }: { experiments: Experim
       consistencyDelta: +(((variant.pos_consistency - baseline.pos_consistency) * 100).toFixed(1)),
     }));
 
+  const cheatSheet = [
+    {
+      id: "V0",
+      title: "Baseline vanilla judge",
+      model: experiments.judge_model,
+      benchmark: "LLMBar-Adversarial · 100 held-out items · order-swap on",
+      method: "Single generic LLM-as-a-judge prompt with no rubric, no teacher, and no learning loop.",
+      result: "81.0% agreement · baseline reference",
+    },
+    {
+      id: "V1",
+      title: "Structured rubric",
+      model: experiments.judge_model,
+      benchmark: "LLMBar-Adversarial · same 100-item test set",
+      method: "Hand-written judging policy with explicit bias guards, criteria extraction, and stronger correctness checks.",
+      result: "85.5% agreement · +4.5pp over baseline",
+    },
+    {
+      id: "V2",
+      title: "Continual self-critique",
+      model: experiments.judge_model,
+      benchmark: "40 disjoint dev items → same 100-item test set",
+      method: "The judge learns from its own errors on a small dev stream by appending task-general lessons to its policy.",
+      result: "86.0% agreement · +5.0pp over baseline · 98.0% position-consistency",
+    },
+    {
+      id: "V4",
+      title: "Judge-jury preference track",
+      model: `${experiments.judge_model} + juror personas`,
+      benchmark: "Separate subjective benchmarks: creative writing and tweet preference",
+      method: "A central judge models shared quality signals while juror agents try to model individual user taste and disagreement.",
+      result: "Mixed result: creative few-shot jurors reached 65.0% vs 63.3% B0; tweet jurors reached +0.46 mean Spearman, but personalization was limited.",
+    },
+    {
+      id: "V5",
+      title: "Teacher-driven learning",
+      model: `${experiments.judge_model} + GPT teacher`,
+      benchmark: "40 disjoint dev items → same 100-item test set",
+      method: "A cross-family GPT teacher critiques mistakes and writes lessons plus examples that are added back into the judge context.",
+      result: "86.5% final · 88.5% peak · +7.5pp peak over baseline",
+    },
+  ];
+
   return (
     <div className="flex flex-col gap-6">
       <SectionTitle
@@ -69,6 +112,32 @@ export default function VariantDashboard({ experiments }: { experiments: Experim
           value={pct(Math.max(...experiments.variants.map((variant) => variant.pos_consistency)), 1)}
           hint="position-consistency under answer order swap"
         />
+      </div>
+
+      <div className="panel panel-pad">
+        <div className="mb-4 flex items-center gap-2">
+          <Sparkles size={16} className="text-accent" />
+          <h3 className="text-base font-semibold text-fog-100">Variant cheat sheet</h3>
+        </div>
+        <div className="grid gap-3 lg:grid-cols-2">
+          {cheatSheet.map((variant) => (
+            <article key={variant.id} className="rounded-xl border border-ink-600/70 bg-ink-900/35 p-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge tone="accent">{variant.id}</Badge>
+                <span className="text-sm font-semibold text-fog-100">{variant.title}</span>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-fog-300">{variant.method}</p>
+              <div className="mt-3 grid gap-2 md:grid-cols-2">
+                <SetupRow label="Model" value={variant.model} />
+                <SetupRow label="Benchmark" value={variant.benchmark} />
+              </div>
+              <div className="mt-3 rounded-lg border border-ink-600/60 bg-ink-800/45 px-3 py-2">
+                <div className="text-[11px] uppercase tracking-[0.18em] text-fog-500">Result</div>
+                <div className="mt-1 text-sm text-fog-200">{variant.result}</div>
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
