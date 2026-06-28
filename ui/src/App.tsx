@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { Gavel, LayoutDashboard, ListTree, Scale, Wand2 } from "lucide-react";
+import { Gavel, Home, LayoutDashboard, ListTree, Scale, Wand2 } from "lucide-react";
 import ControlRoom from "./components/ControlRoom";
 import SkillEvolution from "./components/SkillEvolution";
 import ItemInspector from "./components/ItemInspector";
 import TryJudy from "./components/TryJudy";
+import LandingPage from "./components/LandingPage";
 import { MOCK_RUN } from "./mock/run";
 import { Badge } from "./components/ui";
 
 const TABS = [
+  { id: "home", label: "Overview", icon: Home },
   { id: "control", label: "Control Room", icon: LayoutDashboard },
   { id: "skill", label: "Skill Evolution", icon: ListTree },
   { id: "items", label: "Item Inspector", icon: Scale },
@@ -17,7 +19,7 @@ const TABS = [
 type TabId = (typeof TABS)[number]["id"];
 
 export default function App() {
-  const [tab, setTab] = useState<TabId>("control");
+  const [tab, setTab] = useState<TabId>("home");
   const run = MOCK_RUN;
 
   return (
@@ -56,6 +58,12 @@ export default function App() {
 
       {/* Content */}
       <main className="flex-1">
+        {tab === "home" && (
+          <LandingPage
+            onOpenControlRoom={() => setTab("control")}
+            onOpenTryJudy={() => setTab("try")}
+          />
+        )}
         {tab === "control" && <ControlRoom run={run} />}
         {tab === "skill" && <SkillEvolution run={run} />}
         {tab === "items" && <ItemInspector run={run} />}
