@@ -26,31 +26,90 @@ _Last updated: 2026-06-28_
   (per-item, both judges' rationales). Learning variants also snapshot the evolving
   policy to `runs/.../skill_*.md`.
 
+## Models & what "training" means (read this first)
+
+- **Judge/evaluator model (all variants):** `gemini-3.5-flash`.
+- **Teacher model (V5 only):** `gpt-5.4-nano` (OpenAI) — a *different* family, used as a critic.
+- **"Training"/"learning" here = updating the judge's CONTEXT** (its policy text and/or
+  in-context examples), **not** updating model weights. The model is frozen; what changes
+  is what we put in front of it. (The *weight-update* path — SFT/preference tuning — is a
+  **separate** track in `judy/tuning/` owned by another session, not these variants.)
+- **Data:** all variants are **tested** on the same `llmbar_adversarial_100.jsonl` (100
+  items). Learning variants are **trained** on a *disjoint* `llmbar_adversarial_dev40.jsonl`
+  (40 items) — never on the test 100.
+
 ## Results so far
 
-| ID | Label | What it does | Agreement | Pos-consistency | Cost |
-|----|-------|--------------|-----------|-----------------|------|
-| **V0** | baseline-vanilla | minimal generic prompt, no rubric | **81.0%** | 90.0% | — |
-| **V1** | structured-rubric | engineered policy + bias guards (static) | **85.5%** | 93.0% | ~$0.8 |
-| **V2** | continual-learning | stream; reflect+update policy every 3 examples | **86.0%** | 98.0% | ~$0.81 |
+| ID | Label | Judge | Teacher | Trains on | Tests on | Agreement | Pos-cons. | Cost |
+|----|-------|-------|---------|-----------|----------|-----------|-----------|------|
+| **V0** | baseline-vanilla | gemini-3.5-flash | — | nothing (static) | 100 | **81.0%** | 90.0% | — |
+| **V1** | structured-rubric | gemini-3.5-flash | — | nothing (static) | 100 | **85.5%** | 93.0% | ~$0.8 |
+| **V2** | continual-learning | gemini-3.5-flash | — (self) | 40 dev | 100 | **86.0%** | 98.0% | ~$0.81 |
+| **V5** | teacher-driven | gemini-3.5-flash | gpt-5.4-nano | 40 dev | 100 | **86.5%** (peak 88.5%) | 93.0% | ~$3.30 |
 
 All measured on the same 100 adversarial items, order-swap on.
 
 ### V0 — baseline-vanilla
-- **What:** standard LLM-as-judge — one call, generic *"which answer is better?"* prompt, no rubric/guards.
+- **What it is:** the standard LLM-as-judge — a single call with a generic *"which answer
+  is better?"* prompt, no rubric or bias guards. The control we measure everything against.
+- **Models:** judge = `gemini-3.5-flash`. No teacher.
+- **Training:** none (static prompt — nothing is learned).
+- **Test data:** the 100 adversarial items.
 - **Run:** `python -m judy.eval.benchmark` (uses `VANILLA_POLICY`).
-- **Result:** 81.0%. The bar to beat.
+- **Result:** **81.0%** agreement, 90.0% position-consistency.
 
-### V1 — structured-rubric  *(static improvement, hand-engineered)*
-- **What:** engineered policy — derive the spec's criteria, judge correctness *independently of fluency*, explicit bias guards (fluency≠correctness, length≠quality, position-invariance).
-- **Set up:** policy lives in `skills/judge/SKILL.md`; run via `python -m judy.eval.compare_variants`.
-- **Result:** 85.5% (+4.5), gains on hard subsets (neighbor +10, manual +6). **Caveat:** the *same* rubric *regressed* on easy/safety (RewardBench, −9) — improvements are **context-dependent**.
+### V1 — structured-rubric  *(static, hand-engineered)*
+- **What it is:** a hand-written, smarter judging *policy* — derive the spec's criteria,
+  judge correctness *independently of fluency*, with explicit bias guards (fluency≠correctness,
+  length≠quality, position-invariance). Still one call; still no learning — just a better prompt.
+- **Models:** judge = `gemini-3.5-flash`. No teacher.
+- **Training:** none (the policy is authored by us, in `skills/judge/SKILL.md`).
+- **Test data:** the 100 adversarial items.
+- **Run:** `python -m judy.eval.compare_variants`.
+- **Result:** **85.5%** (+4.5), gains on hard subsets (neighbor +10, manual +6).
+  **Caveat:** the *same* rubric *regressed* on easy/safety (RewardBench, −9) — improvements
+  are **context-dependent**.
 
-### V2 — continual-learning  *(streaming, batch=3)*
-- **What:** starts from vanilla; streams dev examples; **every 3**, reflects on the cases where its verdict disagreed with the label, writes **task-general lessons** about why the labeled answer was better, and updates its policy. Keeps compounding.
-- **Set up:** `python -m judy.loop.continual` — learns on `llmbar_adversarial_dev40.jsonl` (40 disjoint), tested on the 100. `JUDY_CONTINUAL_BATCH=3`.
-- **Result:** 81.0% → **86.0%** (+5.0), pos-consistency → **98.0%**. Only **2** policy updates fired (vanilla got most dev items right → sparse error signal), yet drove the gain. **Reached/beat the hand-tuned V1 — but learned it.**
+### V2 — continual-learning  *(self-improvement, streaming, batch=3)*
+- **What it is:** the judge improves *itself* from experience. It starts from vanilla and
+  streams through training examples; **every 3**, it reflects on the cases where its verdict
+  disagreed with the ground-truth label, writes **task-general lessons** about why the labeled
+  answer was better, and **appends them to its own policy**. No teacher — it critiques itself.
+- **Models:** judge = `gemini-3.5-flash` (also does its own reflection). No teacher.
+- **Training:** learns on **40 disjoint dev items** (`llmbar_adversarial_dev40.jsonl`) by
+  *updating its policy text* (context), not weights. `JUDY_CONTINUAL_BATCH=3`.
+- **Test data:** the 100 adversarial items.
+- **Run:** `python -m judy.loop.continual`.
+- **Result:** 81.0% → **86.0%** (+5.0), pos-consistency → **98.0%**. Only **2** policy
+  updates fired (the strong base judge got most dev items right → sparse error signal), yet
+  drove the gain. **Reached/beat hand-tuned V1 — but learned it.** Net distinct-item gain +2;
+  the rest is robustness (order-consistency 90→98%).
 - **Audit:** `runs/continual-<id>/skill_*.md` (the self-written lessons) + `metrics.json`.
+
+### V5 — teacher-driven continual learning  *(cross-family, streaming, batch=3)*
+- **What it is:** like V2, but the feedback comes from a **different model family acting as a
+  teacher** instead of self-critique. A **Gemini** judge evaluates; when it gets a case wrong,
+  a **GPT (`gpt-5.4-nano`)** teacher — which is shown the **answer key** — diagnoses *why* and
+  writes a task-general lesson (a *principle* + a *procedure*). The judge's context then grows
+  on **two channels** every 3 examples: (1) lessons appended to its policy, (2) the corrected
+  case kept as a **few-shot example**. Rationale: a *different* model catches blind spots a
+  model can't see in itself (self-critique plateaus); grounding the teacher in the label keeps
+  its feedback reliable even though it's a small model.
+- **Models:** judge/student = `gemini-3.5-flash`; teacher/critic = `gpt-5.4-nano` (OpenAI).
+- **Training:** learns on **40 disjoint dev items**, updating *context* (policy lessons +
+  example bank), not weights. Teacher only fires on the judge's errors.
+- **Test data:** the 100 adversarial items.
+- **Run:** `python scripts/run_v5.py` (full curve, checkpoints held-out accuracy across the stream).
+- **Result (started from the V1 structured policy, 85.5%):** learning curve
+  **85.5% → 88.5% (after 10) → 88.5% (20) → 88.5% (30) → 86.5% (final, 40)**.
+  Only **3** teacher critiques fired (sparse errors). **Key finding: it PEAKED at
+  88.5% — the best of any variant — then DRIFTED DOWN to 86.5%.** More continual
+  learning was *not* monotonically better; the last batch over-corrected. **With
+  early stopping at the peak, V5 = 88.5% (beats V0–V3).** The learning curve is what
+  surfaced this — a lean before/after run (85.5%→86.5%) would have hidden it.
+  Teacher cost was negligible ($0.0005); the $3.30 was the curve's held-out checkpoints.
+- **Audit:** `runs/v5-<id>/skill_*.md` (lessons), `example_bank.json`, `critiques.jsonl`
+  (the teacher's diagnoses), `curve.json` (learning curve).
 
 ## How to add a variant (for parallel sessions)
 

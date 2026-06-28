@@ -126,10 +126,15 @@ async def run_teacher_continual(
         if len(batch) >= batch_size:
             await learn(batch)
             batch = []
-            if checkpoint_every and (i + 1) % checkpoint_every == 0:
-                agr = await held_agreement()
-                curve.append({"after": i + 1, "agreement": agr})
-                progress(f"  {i + 1}/{len(dev_items)} streamed · held-out {agr:.1%}")
+        # Checkpoint at fixed example counts (flush any pending batch first), so the
+        # curve has regular points regardless of batch boundaries.
+        if checkpoint_every and (i + 1) % checkpoint_every == 0:
+            if batch:
+                await learn(batch)
+                batch = []
+            agr = await held_agreement()
+            curve.append({"after": i + 1, "agreement": agr})
+            progress(f"  {i + 1}/{len(dev_items)} streamed · held-out {agr:.1%}")
     if batch:
         await learn(batch)
 
