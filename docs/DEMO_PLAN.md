@@ -16,6 +16,21 @@ _Last updated: 2026-06-27_
 6. **Simulate different users** (concise / detailed / conditional / drifting) to
    show per-user adaptation — fast, repeatable, falsifiable.
 
+## Baseline RESULTS (vanilla judge vs RewardBench human labels, 2026-06-27)
+
+35-item sample, gemini-3.5-flash, order-swap on:
+- **Overall agreement 88.6%** — but **saturated** on easy subsets, so misleading.
+- Position-consistency 94.3%; position-consistent agreement 85.7%.
+- **Per subset is the real story:**
+  - alpacaeval-easy / hep-cpp / hep-java / math-prm: **100%** (no headroom)
+  - refusals-offensive 90%, donotanswer (safety) 80%
+  - **llmbar-adver-neighbor: 50% (chance!)** — adversarial fluent-but-wrong cases
+- **Implication:** improvement must be measured on the HARD subsets (adversarial,
+  safety) where the baseline isn't saturated. Sample the eval set toward
+  llmbar-adversarial so baseline lands ~60-75% (per brief), leaving headroom.
+- **Validates the thesis:** a vanilla judge is fooled exactly where fluency/style
+  masks wrongness — which is what self-improvement should fix.
+
 ## Baselines (must establish to claim improvement)
 - **Preference baseline = vanilla judge with no user info.** On style-tie cases
   (both answers correct), it has no way to know the user's taste → expected
