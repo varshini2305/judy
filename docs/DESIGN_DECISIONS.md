@@ -30,6 +30,8 @@ _Last updated: 2026-06-27_
 | Judge model | **Gemini 3.5 Flash** (not Pro) | Iteration-1 judge/reflector/synthesizer; prize fit + sets up v2 Antigravity; Flash for cost |
 | 2nd model | **GPT 5.5 nano** (reserved) | Natural diverse/jury model later; we have OpenAI credits |
 | Model SDK | `google-genai` (async) | First-party, async, JSON mode |
+| Gemini endpoint | **`generateContent`** (not the new Interactions API) | Our judge is stateless (one item → one JSON verdict); Gemini docs say Interactions is for stateful multi-turn agents, `generateContent` is "more appropriate" for structured-output tasks. Interactions is for v2 Antigravity (stateful) |
+| Cost levers (deferred) | **Batch API** for headless bulk eval (~½ price, async) + sync `generateContent` for live UI | Batch halves the dominant judging cost but adds latency/poll complexity — pull only when repeated full runs eat credits. Context caching skipped: policy prefix (~1.2K tok) is near the min-cache threshold, marginal benefit |
 | Validation | **Pydantic v2** | Typed schemas + cheap coercion of loose model JSON |
 | API (planned) | **FastAPI + SSE** | Same loop engine drives headless runs and the live UI; SSE streams progress |
 | Database (planned) | **MongoDB** (Atlas) | Chosen for any DB / vector+text search need |
