@@ -48,8 +48,8 @@ export default function LandingPage({
 
           <div className="max-w-5xl">
             <h1 className="max-w-4xl text-4xl font-semibold tracking-tight text-fog-100 md:text-5xl">
-              <span className="font-bold italic text-fog-100">Judy</span>{" "}
-              <span className="text-fog-300">Self-learning system of Judge and Juries.</span>
+              <span className="font-bold italic text-fog-100">Judy</span>
+              <span className="block text-fog-300">Self-learning system of Judge and Juries.</span>
             </h1>
             <p className="mt-4 max-w-4xl text-base leading-7 text-fog-300 md:text-lg">
               Judy treats evaluation as a system, not a single prompt. The judge defines the rubric and decision process. Jurors contribute independent perspectives. The goal is a clearer, more reliable evaluator that can be tested, improved, and eventually deliberated rather than trusted blindly.
