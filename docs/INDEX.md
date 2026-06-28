@@ -15,6 +15,7 @@
 | **`README.md`** | Setup + run instructions (uv, generate, loop, API, UI) | You want to *run* Judy | On workflow changes |
 | **`docs/IMPLEMENTATION.md`** | **What's implemented + how**: module map, run commands, cost-discipline hooks | You need to understand the code structure | When modules land/change |
 | **`docs/DESIGN_DECISIONS.md`** | **Why**: design + stack choices, alternatives, trade-offs, visual language | You're questioning or extending a choice | When a decision is made/revised |
+| **`docs/VISION_AND_IDEAS.md`** | User's original 8 ideas + promise/feasibility verdicts + the frontier shortlist | Deciding what to explore beyond iter 1 | When vision/ideas evolve |
 | **`docs/ROADMAP.md`** | Backlog: **Now / Next / Later** across UI, judge methods, RSI, hackathon, tech debt | Planning what to do next | As items move |
 | **`docs/INDEX.md`** | This map | You don't know where to look | When a doc is added/removed |
 | **`skills/judge/SKILL.md`** | The **evolving judging policy** (data the loop rewrites — not documentation) | Inspecting/seeding the judge's rubric | By the loop (snapshots in `runs/`) |
