@@ -39,6 +39,8 @@ export default function VariantDashboard({ experiments }: { experiments: Experim
       consistencyDelta: +(((variant.pos_consistency - baseline.pos_consistency) * 100).toFixed(1)),
     }));
   const storyOrder = ["V0", "V1", "V2", "V4", "V5"] as const;
+  // Real measured numbers per variant, so every card reports BOTH metrics.
+  const variantById = Object.fromEntries(experiments.variants.map((variant) => [variant.id, variant]));
 
   const cheatSheet = [
     {
@@ -47,7 +49,7 @@ export default function VariantDashboard({ experiments }: { experiments: Experim
       model: experiments.judge_model,
       benchmark: "LLMBar-Adversarial · 100 held-out items · order-swap on",
       method: "Single generic LLM-as-a-judge prompt with no rubric, no teacher, and no learning loop.",
-      result: "81.0% agreement · baseline reference",
+      result: "Baseline reference every other variant is measured against.",
     },
     {
       id: "V1",
@@ -55,7 +57,7 @@ export default function VariantDashboard({ experiments }: { experiments: Experim
       model: experiments.judge_model,
       benchmark: "LLMBar-Adversarial · same 100-item test set",
       method: "Hand-written judging policy with explicit bias guards, criteria extraction, and stronger correctness checks.",
-      result: "85.5% agreement · +4.5pp over baseline",
+      result: "+4.5pp agreement over baseline, concentrated on the hard adversarial subsets.",
     },
     {
       id: "V2",
@@ -63,7 +65,7 @@ export default function VariantDashboard({ experiments }: { experiments: Experim
       model: experiments.judge_model,
       benchmark: "40 disjoint dev items → same 100-item test set",
       method: "The judge learns from its own errors on a small dev stream by appending task-general lessons to its policy.",
-      result: "86.0% agreement · +5.0pp over baseline · 98.0% position-consistency",
+      result: "+5.0pp over baseline; its biggest gain is robustness (position-consistency).",
     },
     {
       id: "V4",
@@ -79,7 +81,7 @@ export default function VariantDashboard({ experiments }: { experiments: Experim
       model: `${experiments.judge_model} + GPT teacher`,
       benchmark: "40 disjoint dev items → same 100-item test set",
       method: "A cross-family GPT teacher critiques mistakes and writes lessons plus examples that are added back into the judge context.",
-      result: "86.5% final · 88.5% peak · +7.5pp peak over baseline",
+      result: "+7.5pp at peak — the best of any variant — before drifting to its final value.",
     },
   ];
 
@@ -94,7 +96,7 @@ export default function VariantDashboard({ experiments }: { experiments: Experim
         <MetricCard
           label="Baseline"
           value={pct(baseline.agreement, 1)}
-          hint={baseline.label}
+          hint={`${baseline.label} · ${pct(baseline.pos_consistency, 1)} position-consistency`}
         />
         <MetricCard
           label="Best final"
@@ -172,8 +174,29 @@ export default function VariantDashboard({ experiments }: { experiments: Experim
                 <SetupRow label="Model" value={variant.model} />
                 <SetupRow label="Benchmark" value={variant.benchmark} />
               </div>
+              {variantById[variant.id] ? (
+                <div className="mt-3 grid gap-2 md:grid-cols-2">
+                  <SetupRow
+                    label="Agreement"
+                    value={`${pct(variantById[variant.id].agreement, 1)}${
+                      variantById[variant.id].peak ? ` · peak ${pct(variantById[variant.id].peak, 1)}` : ""
+                    }`}
+                  />
+                  <SetupRow
+                    label="Position-consistency"
+                    value={pct(variantById[variant.id].pos_consistency, 1)}
+                  />
+                </div>
+              ) : (
+                <div className="mt-3">
+                  <SetupRow
+                    label="Metrics"
+                    value="Separate subjective benchmark — not on the shared agreement/consistency scale"
+                  />
+                </div>
+              )}
               <div className="mt-3 rounded-lg border border-ink-600/60 bg-ink-800/45 px-3 py-2">
-                <div className="text-[11px] uppercase tracking-[0.18em] text-fog-500">Result</div>
+                <div className="text-[11px] uppercase tracking-[0.18em] text-fog-500">Takeaway</div>
                 <div className="mt-1 text-sm text-fog-200">{variant.result}</div>
               </div>
             </article>
