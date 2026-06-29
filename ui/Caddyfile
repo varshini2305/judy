@@ -1,10 +1,22 @@
 :8080 {
-	@api path /api/*
-	handle @api {
-		reverse_proxy {$BACKEND_ORIGIN}
+	# Proxy API calls to the FastAPI backend. This MUST be its own handle block:
+	# `try_files` (below) is a rewrite and Caddy orders rewrites BEFORE reverse_proxy,
+	# so if static serving is left at the top level it rewrites /api/* -> /index.html
+	# (because index.html exists) before this proxy can match — making /api/* fall
+	# through to the SPA. Wrapping static serving in its own handle makes the two
+	# routes mutually exclusive, so /api/* terminates here.
+	handle /api/* {
+		reverse_proxy {$BACKEND_ORIGIN} {
+			# Railway's edge routes by Host; default would forward the FRONTEND host.
+			# Send the backend's own hostname (no port) so the backend edge routes it.
+			header_up Host {http.reverse_proxy.upstream.host}
+		}
 	}
 
-	root * /srv
-	file_server
-	try_files {path} /index.html
+	# Everything else: serve the built SPA, falling back to index.html for client routes.
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
 }
