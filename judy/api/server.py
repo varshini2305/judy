@@ -37,9 +37,24 @@ app.add_middleware(
 _UI_PUBLIC = CONFIG.runs_dir.parent / "ui/public"
 _GENERIC_SPEC = "Answer the user's question as helpfully, correctly, and completely as possible."
 
-# --- Demo session state (single in-memory profile; reset endpoint provided) -----
+# --- Demo session state ---------------------------------------------------------
+# The learned preference is PERSISTED so it improves the judge across runs; the
+# per-session pair cursor (_seen) and feedback log (_events) stay in-memory.
 _PAIRS = make_style_pairs(24, seed=1)
-_profile = UserProfile(user_id="demo")
+_PROFILE_PATH = CONFIG.runs_dir / "preference_profile.json"
+
+
+def _load_profile() -> UserProfile:
+    """Load the persisted preference if present, else start fresh."""
+    if _PROFILE_PATH.exists():
+        try:
+            return UserProfile.load(_PROFILE_PATH)
+        except (json.JSONDecodeError, KeyError, ValueError, TypeError):
+            pass
+    return UserProfile(user_id="demo")
+
+
+_profile = _load_profile()
 _seen: set[int] = set()
 _events: list[dict] = []
 _SIM_METHODS = {
@@ -216,6 +231,7 @@ def feedback(fb: Feedback) -> dict:
             answer_a=a,
             answer_b=b,
         )
+        _profile.save(_PROFILE_PATH)  # persist so subsequent judge runs use it
 
     event = FeedbackEvent(
         case_id=f"pair-{fb.index}",
@@ -329,6 +345,7 @@ def pref_simulate_run() -> dict:
 def pref_reset() -> dict:
     global _profile, _seen, _events
     _profile, _seen, _events = UserProfile(user_id="demo"), set(), []
+    _PROFILE_PATH.unlink(missing_ok=True)
     return {"ok": True}
 
 
@@ -368,8 +385,20 @@ class JudgeReq(BaseModel):
 async def judge(req: JudgeReq) -> dict:
     client = GeminiClient()
     policy = load_skill(CONFIG.skill_path)
+    # Condition the judge on the learned user preference (only once we have signal),
+    # so accumulated feedback actually changes subsequent judgments.
+    applied = _profile.has_signal()
+    system = policy
+    if applied:
+        system = (
+            f"{policy}\n\n## Learned user preference (from this user's feedback)\n"
+            f"{_profile.render_context()}"
+        )
     prompt = build_user_prompt(req.system_prompt or _GENERIC_SPEC, req.question, req.answer_a, req.answer_b)
-    data = await client.generate_json(prompt, system_instruction=policy)
+    data = await client.generate_json(prompt, system_instruction=system)
     v = _coerce_verdict(data)
     return {"verdict": v.verdict, "margin": v.margin, "rationale": v.rationale,
-            "criteria": [c.model_dump() for c in v.criteria], "cost": client.usage.as_dict()}
+            "criteria": [c.model_dump() for c in v.criteria],
+            "preference_applied": applied,
+            "inferred_preference": _profile.top_hypothesis()[0] if applied else None,
+            "cost": client.usage.as_dict()}

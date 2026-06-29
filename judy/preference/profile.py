@@ -12,7 +12,9 @@ the critique agent) is the recursive extension.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from judy.preference.schema import Side
 from judy.preference.simulated_user import Features
@@ -91,6 +93,40 @@ class UserProfile:
     def top_hypothesis(self) -> tuple[str, float]:
         h = max(self.weights, key=self.weights.get)
         return h, self.weights[h]
+
+    def has_signal(self) -> bool:
+        """True once at least one feedback example has been observed."""
+        return len(self.examples) > 0
+
+    # --- Persistence: carry the learned preference across runs ----------------
+    def to_dict(self) -> dict:
+        return {
+            "user_id": self.user_id,
+            "weights": self.weights,
+            "stats": self.stats,
+            "examples": [list(example) for example in self.examples],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "UserProfile":
+        """Rebuild a profile, tolerating a changed hypothesis set."""
+        profile = cls(user_id=data.get("user_id", "demo"))
+        saved_weights = data.get("weights", {})
+        saved_stats = data.get("stats", {})
+        profile.weights = {h: float(saved_weights.get(h, 1.0)) for h in HYPOTHESES}
+        profile.stats = {h: list(saved_stats.get(h, [0, 0])) for h in HYPOTHESES}
+        profile.examples = [tuple(example) for example in data.get("examples", [])]
+        profile._normalize()
+        return profile
+
+    def save(self, path: str | Path) -> None:
+        dest = Path(path)
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(json.dumps(self.to_dict(), indent=2), encoding="utf-8")
+
+    @classmethod
+    def load(cls, path: str | Path) -> "UserProfile":
+        return cls.from_dict(json.loads(Path(path).read_text(encoding="utf-8")))
 
     def render_context(self, *, k_examples: int = 3) -> str:
         """Preference block + recent ICL examples to condition the judge."""
