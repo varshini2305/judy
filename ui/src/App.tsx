@@ -20,7 +20,7 @@ const TABS = [
   { id: "variants", label: "Variants", icon: LayoutDashboard },
   { id: "curve", label: "Learning Curve", icon: LineChart },
   { id: "tuning", label: "Tuning", icon: FlaskConical },
-  { id: "preference", label: "Preference Loop", icon: Users },
+  { id: "preference", label: "Preference Learning", icon: Users },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];

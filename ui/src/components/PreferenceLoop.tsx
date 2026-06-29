@@ -255,7 +255,7 @@ export default function PreferenceLoop() {
   return (
     <div className="flex flex-col gap-6">
       <SectionTitle
-        title="Preference Loop"
+        title="Preference Learning"
         subtitle="This page turns user feedback into training signal. First collect preferences, then inspect what Judy inferred, and finally see how those signals can drive a recursive improvement loop."
       />
 
@@ -263,7 +263,7 @@ export default function PreferenceLoop() {
         <MetricCard
           label="Backend"
           value={connected === null ? "..." : connected ? "live" : "offline"}
-          hint={connected ? "FastAPI preference loop connected" : "requires /api backend"}
+          hint={connected ? "FastAPI preference-learning backend connected" : "requires /api backend"}
         />
         <MetricCard
           label="Feedback received"
