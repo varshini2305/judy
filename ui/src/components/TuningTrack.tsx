@@ -50,6 +50,7 @@ export default function TuningTrack({
   const latestTrendPoint = [...sftTrend]
     .filter((point) => point.tunedAgreement !== null)
     .sort((a, b) => b.sampleSize - a.sampleSize)[0];
+  const trend40 = sftTrend.find((point) => point.sampleSize === 40);
 
   const subsetData = Object.entries(base.per_subset).map(([subset, metrics]) => ({
     subset,
@@ -80,7 +81,7 @@ export default function TuningTrack({
         subtitle="This page isolates the supervised fine-tuning story: how many training examples were used, how performance changed, and whether scaling SFT is moving in a clearly useful direction."
       />
 
-      <div className="grid gap-4 lg:grid-cols-4">
+      <div className="grid gap-4 lg:grid-cols-5">
         <MetricCard
           label="Baseline"
           value={pct(base.overall.agreement, 1)}
@@ -92,6 +93,14 @@ export default function TuningTrack({
           delta={tuned20.overall.agreement - base.overall.agreement}
           hint="first tuned checkpoint"
         />
+        {trend40 && trend40.tunedAgreement !== null && (
+          <MetricCard
+            label={trend40.label}
+            value={`${trend40.tunedAgreement.toFixed(1)}%`}
+            delta={trend40.agreementDeltaPp !== null ? trend40.agreementDeltaPp / 100 : undefined}
+            hint="40-example checkpoint"
+          />
+        )}
         <MetricCard
           label={latestTrendPoint?.label ?? mostRecent.label}
           value={latestTrendPoint ? `${latestTrendPoint.tunedAgreement?.toFixed(1)}%` : pct(mostRecentTuned.overall.agreement, 1)}
