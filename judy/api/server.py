@@ -301,6 +301,8 @@ def pref_state() -> dict:
         "n_feedback": len(_seen),
         "feedback_modes_seen": sorted({event["feedback_mode"] for event in _events}),
         "recent_events": _events[-5:],
+        # Taste notes the disagreement loop has learned for this user (condition the judge).
+        "preference_notes": _profile.preference_notes,
     }
 
 

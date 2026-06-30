@@ -41,6 +41,20 @@ interface PreferenceState {
   n_feedback: number;
   feedback_modes_seen: FeedbackMode[];
   recent_events: RecentEvent[];
+  preference_notes: string[];
+}
+
+interface LearnResult {
+  disagreement: boolean;
+  judge_verdict: "A" | "B";
+  judge_rationale: string;
+  user_choice?: "A" | "B";
+  reasoning?: { kind: "taste" | "flaw" | "unclear"; explanation: string };
+  applied?: { kind: string; preference_note?: string; proposed_global_lesson?: string };
+}
+
+interface ProposedLessons {
+  lessons: Array<{ lesson: string; source: string }>;
 }
 
 interface PreferenceFeedbackResult {
@@ -144,6 +158,9 @@ export default function PreferenceLoop() {
   const [scoreA, setScoreA] = useState<number>(4);
   const [scoreB, setScoreB] = useState<number>(3);
   const [note, setNote] = useState("");
+  const [learnNote, setLearnNote] = useState("");
+  const [learnResult, setLearnResult] = useState<LearnResult | null>(null);
+  const [proposed, setProposed] = useState<ProposedLessons | null>(null);
 
   useEffect(() => {
     void initialize();
@@ -153,17 +170,19 @@ export default function PreferenceLoop() {
     setBusy(true);
     setError(null);
     try {
-      const [, stateJson, nextJson, loopReadyJson] = await Promise.all([
+      const [, stateJson, nextJson, loopReadyJson, proposedJson] = await Promise.all([
         fetchJson<Record<string, unknown>>("/api/health"),
         fetchJson<PreferenceState>("/api/preference/state"),
         fetchJson<PreferencePair>("/api/preference/next"),
         fetchJson<LoopReadyResponse>("/api/preference/loop-ready"),
+        fetchJson<ProposedLessons>("/api/preference/proposed-lessons"),
       ]);
 
       setConnected(true);
       setState(stateJson);
       setPair(nextJson.done ? null : nextJson);
       setLoopReady(loopReadyJson);
+      setProposed(proposedJson);
     } catch (loadError) {
       setConnected(false);
       setError(loadError instanceof Error ? loadError.message : "Unknown backend error");
@@ -211,6 +230,7 @@ export default function PreferenceLoop() {
       await fetchJson<{ ok: true }>("/api/preference/reset", { method: "POST" });
       setLastResult(null);
       setSimulation(null);
+      setLearnResult(null);
       await initialize();
     } catch (resetError) {
       setError(resetError instanceof Error ? resetError.message : "Unknown reset error");
@@ -230,6 +250,31 @@ export default function PreferenceLoop() {
       simulation.results[0]),
     [simulation],
   );
+
+  async function teachJudge(chosen: "A" | "B") {
+    if (!pair) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await fetchJson<LearnResult>("/api/preference/learn", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ index: pair.index, chosen, note: learnNote }),
+      });
+      setLearnResult(result);
+      // Refresh learned notes + staged global lessons so the panels update live.
+      const [stateJson, proposedJson] = await Promise.all([
+        fetchJson<PreferenceState>("/api/preference/state"),
+        fetchJson<ProposedLessons>("/api/preference/proposed-lessons"),
+      ]);
+      setState(stateJson);
+      setProposed(proposedJson);
+    } catch (learnError) {
+      setError(learnError instanceof Error ? learnError.message : "Unknown learn error");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function runSimulation() {
     setBusy(true);
@@ -385,6 +430,102 @@ export default function PreferenceLoop() {
             </div>
           </div>
         )}
+      </div>
+
+      <div className="panel panel-pad">
+        <div className="mb-4 flex items-center gap-2">
+          <Scale size={16} className="text-accent" />
+          <h3 className="text-base font-semibold text-fog-100">Teach the LLM judge (self-improvement loop)</h3>
+        </div>
+        <p className="text-sm leading-6 text-fog-300">
+          This runs the live loop: the LLM judge evaluates the current pair, and if it
+          <span className="text-fog-100"> disagrees</span> with your choice it reasons about why and
+          <span className="text-fog-100"> triages</span> the disagreement — a subjective
+          <span className="text-fog-100"> taste</span> difference becomes a note that conditions this
+          user&apos;s future judgments, while a genuine
+          <span className="text-fog-100"> flaw</span> is staged as a task-general lesson for the shared policy.
+        </p>
+        {!pair && (
+          <p className="mt-3 text-sm text-fog-500">Load a pair below (or reset) to teach the judge.</p>
+        )}
+        {pair && (
+          <div className="mt-4 flex flex-col gap-3">
+            <label className="flex flex-col gap-2">
+              <span className="label">Optional: why did you choose it? (sharpens taste-vs-flaw)</span>
+              <input
+                value={learnNote}
+                onChange={(event) => setLearnNote(event.target.value)}
+                placeholder="e.g. 'A is shorter and I prefer that' or 'B is factually wrong'"
+                className="rounded-lg border border-ink-600 bg-ink-900/60 px-3 py-2 text-sm text-fog-100 placeholder:text-fog-500 focus:border-accent/50 focus:outline-none"
+              />
+            </label>
+            <div className="flex flex-wrap gap-3">
+              <button onClick={() => void teachJudge("A")} disabled={busy} className="btn btn-accent">
+                Tell the judge: A is better
+              </button>
+              <button onClick={() => void teachJudge("B")} disabled={busy} className="btn btn-accent">
+                Tell the judge: B is better
+              </button>
+            </div>
+          </div>
+        )}
+
+        {learnResult && (
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            <div className="rounded-xl border border-ink-600/70 bg-ink-900/35 p-4">
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                <Badge tone="neutral">judge chose {learnResult.judge_verdict}</Badge>
+                <Badge tone={learnResult.disagreement ? "bad" : "good"}>
+                  {learnResult.disagreement ? "disagreed with you" : "agreed with you"}
+                </Badge>
+                {learnResult.reasoning && <Badge tone="accent">{learnResult.reasoning.kind}</Badge>}
+              </div>
+              <p className="text-sm leading-6 text-fog-300">{learnResult.judge_rationale}</p>
+              {learnResult.reasoning?.explanation && (
+                <p className="mt-2 text-xs leading-5 text-fog-500">{learnResult.reasoning.explanation}</p>
+              )}
+            </div>
+            <div className="rounded-xl border border-ink-600/70 bg-ink-900/35 p-4">
+              <div className="label">What the judge learned</div>
+              {learnResult.applied?.preference_note ? (
+                <p className="mt-2 text-sm leading-6 text-fog-200">
+                  <span className="text-fog-100">Per-user taste note:</span> {learnResult.applied.preference_note}
+                </p>
+              ) : learnResult.applied?.proposed_global_lesson ? (
+                <p className="mt-2 text-sm leading-6 text-fog-200">
+                  <span className="text-fog-100">Proposed global lesson:</span> {learnResult.applied.proposed_global_lesson}
+                </p>
+              ) : (
+                <p className="mt-2 text-sm text-fog-500">
+                  {learnResult.disagreement ? "No clear lesson extracted." : "Nothing to learn — the judge already agreed."}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-5 grid gap-4 lg:grid-cols-2">
+          <div className="rounded-xl border border-ink-600/70 bg-ink-900/35 p-4">
+            <div className="label">Per-user taste notes (condition this user&apos;s judge)</div>
+            {state?.preference_notes?.length ? (
+              <ul className="mt-2 space-y-1 text-sm leading-6 text-fog-200">
+                {state.preference_notes.map((n) => <li key={n}>• {n}</li>)}
+              </ul>
+            ) : (
+              <p className="mt-2 text-sm text-fog-500">None yet — teach the judge on a disagreement.</p>
+            )}
+          </div>
+          <div className="rounded-xl border border-ink-600/70 bg-ink-900/35 p-4">
+            <div className="label">Proposed global lessons (staged, gated)</div>
+            {proposed?.lessons?.length ? (
+              <ul className="mt-2 space-y-1 text-sm leading-6 text-fog-200">
+                {proposed.lessons.map((l) => <li key={l.lesson}>• {l.lesson}</li>)}
+              </ul>
+            ) : (
+              <p className="mt-2 text-sm text-fog-500">None staged — flaw-type disagreements land here.</p>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
