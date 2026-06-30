@@ -36,6 +36,8 @@ demonstrating that self-improvement needs an external anchor.
 | `judy/data/personas.py` | V4 user personas | 5 simulated users with **hidden** taste policies (label oracle; never shown to jurors) |
 | `judy/eval/jury.py` | V4 judge-jury (subjective) | B0 single judge vs per-user jurors (`reflect`/`fewshot` modes); reuses harness+metrics+reflect; emits per-user agreement + personalization matrix |
 | `scripts/generate_creative_pref_benchmark.py` | V4 benchmark gen | gpt-5.4-nano creative pairs + per-persona labels (position-randomised) → `creative_pref_benchmark.jsonl` |
+| `judy/preference/profile.py` | Per-user preference model | weighted hypotheses + learned **preference_notes**; persisted (save/load); `render_context()` conditions the judge |
+| `judy/preference/reasoning.py` | Judge self-improvement loop | judge re-evaluates a pair; on judge-vs-user disagreement, triages **taste** (→ per-user note) vs **flaw** (→ staged task-general lesson). Context-only, no weights |
 
 **UI built (artifact-backed for results):** `ui/` — Vite+React+TS+Tailwind+
 Recharts+diff-viewer. The current shipped views are:

@@ -175,6 +175,21 @@ Work alternates between **Claude Code, Codex, and Antigravity** across sessions.
 
 > One entry per work block: agent · what changed · next step · unverified.
 
+- **2026-06-29 — Claude** · Wired the **live judge self-improvement loop** from user
+  feedback (context-engineering, no weights). `judy/preference/profile.py` gained a
+  persisted per-user `preference_notes` layer + `render_context()` injection;
+  earlier commit already feeds the learned preference into `/api/judge`. New
+  `judy/preference/reasoning.py` + `/api/preference/learn`: the judge re-evaluates a
+  pair and, on judge-vs-user disagreement, runs a **triage** reflection — *taste*
+  → per-user note (improves that user's future judgments), *flaw* → task-general
+  lesson **staged** in `proposed_lessons.json` (never auto-written to `SKILL.md`;
+  `/api/preference/proposed-lessons` lists them). Offline tests pass (8). · **Next:**
+  optional meta-step (Promptbreeder-style "improve the improver") with a
+  meta-validation signal; a UI to prompt for rationale (text now, voice later); a
+  gate to graduate staged lessons into `SKILL.md`. · **Unverified:** live Gemini
+  behaviour of the triage on real disagreements; whether taste notes measurably
+  shift judgments on held-out pairs.
+
 - **2026-06-28 — Codex** · Prepared a continuation-tuning setup for the weight-
   update lane so the repo now has the *remaining 40* train cases after the
   first 60 in `judy/tuning_datasets/sft/gemini35-flash/judy_objective_continue_60_to_100/`.
