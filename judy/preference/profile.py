@@ -59,6 +59,8 @@ class UserProfile:
     weights: dict[str, float] = field(default_factory=lambda: {h: 1.0 for h in HYPOTHESES})
     stats: dict[str, list[int]] = field(default_factory=lambda: {h: [0, 0] for h in HYPOTHESES})
     examples: list[tuple[str, str, Side]] = field(default_factory=list)  # (answer_a, answer_b, chosen)
+    # Task-general taste notes for THIS user, learned from disagreement reasoning.
+    preference_notes: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         self._normalize()
@@ -95,8 +97,14 @@ class UserProfile:
         return h, self.weights[h]
 
     def has_signal(self) -> bool:
-        """True once at least one feedback example has been observed."""
-        return len(self.examples) > 0
+        """True once any feedback example or learned taste note exists."""
+        return bool(self.examples or self.preference_notes)
+
+    def add_preference_note(self, note: str) -> None:
+        """Record a task-general taste note for this user (deduped)."""
+        note = note.strip()
+        if note and note not in self.preference_notes:
+            self.preference_notes.append(note)
 
     # --- Persistence: carry the learned preference across runs ----------------
     def to_dict(self) -> dict:
@@ -105,6 +113,7 @@ class UserProfile:
             "weights": self.weights,
             "stats": self.stats,
             "examples": [list(example) for example in self.examples],
+            "preference_notes": self.preference_notes,
         }
 
     @classmethod
@@ -116,6 +125,7 @@ class UserProfile:
         profile.weights = {h: float(saved_weights.get(h, 1.0)) for h in HYPOTHESES}
         profile.stats = {h: list(saved_stats.get(h, [0, 0])) for h in HYPOTHESES}
         profile.examples = [tuple(example) for example in data.get("examples", [])]
+        profile.preference_notes = list(data.get("preference_notes", []))
         profile._normalize()
         return profile
 
@@ -135,4 +145,6 @@ class UserProfile:
                  "Apply this preference only to break ties; correctness and spec-compliance come first."]
         for a, b, chosen in self.examples[-k_examples:]:
             lines.append(f"Example — the user chose the answer: {(a if chosen == 'A' else b)[:160]}")
+        for note in self.preference_notes[-5:]:
+            lines.append(f"Learned about this user: {note}")
         return "\n".join(lines)

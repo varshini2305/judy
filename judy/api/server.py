@@ -25,6 +25,7 @@ from judy.judge.judge import _coerce_verdict, build_user_prompt
 from judy.judge.skill import load_skill
 from judy.llm.gemini import GeminiClient
 from judy.preference.profile import UserProfile
+from judy.preference.reasoning import judge_pair, reason_disagreement
 from judy.preference.schema import FeedbackEvent
 from judy.preference.session import make_style_pairs
 from judy.preference.simulated_user import Features
@@ -42,6 +43,9 @@ _GENERIC_SPEC = "Answer the user's question as helpfully, correctly, and complet
 # per-session pair cursor (_seen) and feedback log (_events) stay in-memory.
 _PAIRS = make_style_pairs(24, seed=1)
 _PROFILE_PATH = CONFIG.runs_dir / "preference_profile.json"
+# Proposed GLOBAL lessons from "flaw" disagreements — staged, never auto-applied
+# to SKILL.md (a human/validation gate decides what graduates to the shared policy).
+_PROPOSED_LESSONS_PATH = CONFIG.runs_dir / "proposed_lessons.json"
 
 
 def _load_profile() -> UserProfile:
@@ -341,11 +345,79 @@ def pref_simulate_run() -> dict:
     }
 
 
+class LearnReq(BaseModel):
+    index: int
+    chosen: str  # "A" | "B"
+    note: str = ""  # optional user rationale (text; voice can transcribe to this later)
+
+
+def _stage_lesson(lesson: str, *, source: str) -> None:
+    """Append a proposed global lesson (deduped); never touches SKILL.md directly."""
+    existing = []
+    if _PROPOSED_LESSONS_PATH.exists():
+        try:
+            existing = json.loads(_PROPOSED_LESSONS_PATH.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, ValueError):
+            existing = []
+    if lesson and lesson not in [item.get("lesson") for item in existing]:
+        existing.append({"lesson": lesson, "source": source})
+        _PROPOSED_LESSONS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _PROPOSED_LESSONS_PATH.write_text(json.dumps(existing, indent=2), encoding="utf-8")
+
+
+@app.post("/api/preference/learn")
+async def learn(req: LearnReq) -> dict:
+    """The self-improvement step: judge the pair, and if it DISAGREES with the user,
+    reason about why and either store a per-user taste note or stage a global lesson."""
+    if not (0 <= req.index < len(_PAIRS)):
+        raise HTTPException(400, "bad index")
+    if req.chosen not in ("A", "B"):
+        raise HTTPException(400, "chosen must be 'A' or 'B'")
+    a, b, _tt = _PAIRS[req.index]
+
+    client = GeminiClient()
+    policy = load_skill(CONFIG.skill_path)
+    system = policy
+    if _profile.has_signal():  # judge as it currently stands (incl. learned preference)
+        system = f"{policy}\n\n## Learned user preference\n{_profile.render_context()}"
+    judge_verdict, judge_rationale = await judge_pair(client, system, a, b)
+
+    if judge_verdict == req.chosen:
+        return {"disagreement": False, "judge_verdict": judge_verdict,
+                "judge_rationale": judge_rationale, "cost": client.usage.as_dict()}
+
+    reasoning = await reason_disagreement(
+        client, answer_a=a, answer_b=b, judge_verdict=judge_verdict,
+        judge_rationale=judge_rationale, user_choice=req.chosen, user_rationale=req.note,
+    )
+    applied: dict = {"kind": reasoning["kind"]}
+    if reasoning["kind"] == "taste" and reasoning["preference_note"]:
+        _profile.add_preference_note(reasoning["preference_note"])
+        _profile.save(_PROFILE_PATH)  # per-user layer: improves THIS user's future judgments
+        applied["preference_note"] = reasoning["preference_note"]
+    elif reasoning["kind"] == "flaw" and reasoning["general_lesson"]:
+        _stage_lesson(reasoning["general_lesson"], source=f"pair-{req.index}")
+        applied["proposed_global_lesson"] = reasoning["general_lesson"]
+
+    return {"disagreement": True, "judge_verdict": judge_verdict, "judge_rationale": judge_rationale,
+            "user_choice": req.chosen, "reasoning": reasoning, "applied": applied,
+            "cost": client.usage.as_dict()}
+
+
+@app.get("/api/preference/proposed-lessons")
+def proposed_lessons() -> dict:
+    """Global lessons proposed from 'flaw' disagreements, awaiting a validation gate."""
+    if _PROPOSED_LESSONS_PATH.exists():
+        return {"lessons": json.loads(_PROPOSED_LESSONS_PATH.read_text(encoding="utf-8"))}
+    return {"lessons": []}
+
+
 @app.post("/api/preference/reset")
 def pref_reset() -> dict:
     global _profile, _seen, _events
     _profile, _seen, _events = UserProfile(user_id="demo"), set(), []
     _PROFILE_PATH.unlink(missing_ok=True)
+    _PROPOSED_LESSONS_PATH.unlink(missing_ok=True)
     return {"ok": True}
 
 
