@@ -44,11 +44,13 @@ _ENDPOINT_RE = re.compile(r"^projects/(?P<project>[^/]+)/locations/(?P<location>
 _LETTER_RE = re.compile(r"\b([AB])\b")
 
 
-def _make_client(model: str):
-    """Vertex client for a tuned endpoint resource, else the API-key Gemini client."""
+def _make_client(model: str, *, vertex_project: str | None = None, vertex_location: str | None = None):
+    """Vertex client for a tuned endpoint (or base-via-Vertex), else API-key Gemini."""
     m = _ENDPOINT_RE.match(model)
     if m:
         return genai.Client(vertexai=True, project=m.group("project"), location=m.group("location"))
+    if vertex_project and vertex_location:  # route the base model through Vertex (ADC, no API key)
+        return genai.Client(vertexai=True, project=vertex_project, location=vertex_location)
     return genai.Client(api_key=CONFIG.gemini_api_key)
 
 
@@ -79,8 +81,9 @@ def _judge_one(client, model: str, item, swap: bool) -> JudgeRecord:
                        verdict=canonical, margin=3, rationale="", correct=item.is_correct(canonical))
 
 
-def _eval_model(label: str, model: str, items, *, workers: int) -> dict:
-    client = _make_client(model)
+def _eval_model(label: str, model: str, items, *, workers: int,
+                vertex_project: str | None = None, vertex_location: str | None = None) -> dict:
+    client = _make_client(model, vertex_project=vertex_project, vertex_location=vertex_location)
     tasks = [(item, swap) for item in items for swap in (False, True)]
     with ThreadPoolExecutor(max_workers=workers) as pool:
         records = list(pool.map(lambda t: _judge_one(client, model, t[0], t[1]), tasks))
@@ -101,6 +104,9 @@ def main() -> None:
     p.add_argument("--tuned-model", help="Vertex endpoint resource; omit to eval base only.")
     p.add_argument("--limit", type=int, help="evaluate only the first N items (smoke test)")
     p.add_argument("--workers", type=int, default=6)
+    p.add_argument("--skip-base", action="store_true", help="eval only the tuned model")
+    p.add_argument("--base-via-vertex", action="store_true",
+                   help="route the base model through Vertex ADC (no Gemini API key needed)")
     p.add_argument("--out", type=Path, default=CONFIG.runs_dir / "sft_format_eval.json")
     args = p.parse_args()
 
@@ -109,9 +115,18 @@ def main() -> None:
         items = items[: args.limit]
     print(f"=== SFT-format eval (build_sft_prompt + bare letter) on {len(items)} items ===")
 
-    variants = [_eval_model("base", args.base_model, items, workers=args.workers)]
+    # Infer Vertex project/location from the tuned endpoint so base can also use ADC.
+    ep = _ENDPOINT_RE.match(args.tuned_model or "")
+    vproj = ep.group("project") if (ep and args.base_via_vertex) else None
+    vloc = ep.group("location") if (ep and args.base_via_vertex) else None
+
+    variants = []
+    if not args.skip_base:
+        variants.append(_eval_model("base", args.base_model, items, workers=args.workers,
+                                    vertex_project=vproj, vertex_location=vloc))
     if args.tuned_model:
         variants.append(_eval_model("tuned", args.tuned_model, items, workers=args.workers))
+    if len(variants) == 2:
         b, t = variants[0]["overall"], variants[1]["overall"]
         print(f"[delta tuned-base] agreement {(t['agreement']-b['agreement'])*100:+.1f} pp")
 
