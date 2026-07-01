@@ -135,15 +135,30 @@ across the 5 tunes, so the curve isolates the effect of data quantity.
   (it would say: for a strong base judge, SFT at this scale/data doesn't beat
   prompt-based methods — consistent with our other results).
 
-## 8. Open questions for the professor
+## 8. Decisions we made (and why) — not open questions
 
-1. Nested independent tunes vs. continuation tuning for the scaling curve — is
-   independent the right call to avoid curriculum confounds?
-2. Eval headroom: is moving the primary eval to adversarial (vs saturated objective)
-   the right way to make the curve informative?
-3. Reasoning targets via rejection sampling (drop teacher-wrong rows) vs. keeping
-   corrected targets — which biases the study less?
-4. Is 100 examples / this eval size adequate, or should we prioritize a larger eval
-   for tighter CIs over more training data?
-5. SFT vs. preference optimization (DPO) / RFT given labels are verifiable — is SFT
-   even the right tool here, or a baseline to beat?
+These followed from first principles / our own evidence; we are not outsourcing them:
+
+- **Independent nested tunes** (not continuation) — avoids curriculum/order confounds;
+  each point is a clean "base + N examples."
+- **Eval on a set with headroom** (adversarial), not the saturated objective set — a
+  ~92.5%-base set can't show movement.
+- **Rejection-sampling targets, drop teacher-wrong rows** (STaR-style) — fabricated
+  "corrected" rationales would teach post-hoc rationalization and shift the target
+  distribution.
+- **Report CIs / treat sub-CI deltas as noise** — pure statistics: 100 eval items ⇒
+  ~±8–10pp CI, so a 5-point curve with small deltas is underpowered; enlarge the eval
+  or state the null explicitly.
+- **SFT is a baseline to beat, not the end goal** — with verifiable labels, RFT/DPO fit
+  a judge better; we run SFT to characterize it, not because it's optimal.
+
+## 9. Where an expert's judgment genuinely helps
+
+Only the things we cannot reliably self-assess:
+
+1. **Soundness / blind-spot check** — is there a confound in this design we can't see?
+   (A review, not a question.)
+2. **Realistic prior at N≈100** — is managed SFT even *expected* to move a strong
+   frontier judge at this scale, or is the study predictably underpowered — i.e. worth
+   running at all, or should we go straight to a larger N / DPO / RFT? This is practical
+   experience we lack.
